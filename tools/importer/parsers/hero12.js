@@ -1,59 +1,56 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row: matches example exactly
+  // Table header row as per instructions and example
   const headerRow = ['Hero (hero12)'];
 
-  // Row 2: Background image (optional)
-  // Look for an img with class 'cover-image utility-position-absolute' as the background
+  // Find the background image: the .cover-image that is direct child (NOT inside card)
   let bgImg = null;
-  const relDivs = element.querySelectorAll('.utility-position-relative');
-  for (const div of relDivs) {
-    const img = div.querySelector('img.cover-image.utility-position-absolute');
-    if (img) {
+  // Look for .cover-image img elements that are not nested inside .card or .card-body
+  const possibleImgs = element.querySelectorAll('img.cover-image');
+  for (const img of possibleImgs) {
+    // Only pick image if it is not inside .card, i.e. top-level image
+    let parent = img.parentElement;
+    let insideCard = false;
+    while (parent && parent !== element) {
+      if (parent.classList && parent.classList.contains('card')) {
+        insideCard = true;
+        break;
+      }
+      parent = parent.parentElement;
+    }
+    if (!insideCard) {
       bgImg = img;
       break;
     }
   }
 
-  // Row 3: Main content
-  // Find the card which contains the visible text content (headings, bullets, CTA)
-  let contentCell = null;
-  const card = element.querySelector('.card.card-on-secondary');
-  if (card) {
-    // The card-body contains the grid-layout
-    const cardBody = card.querySelector('.card-body');
-    if (cardBody) {
-      const grid = cardBody.querySelector('.grid-layout');
-      if (grid) {
-        // The grid usually contains an image and a text column; take the column with the h2 for main content
-        const gridChildren = Array.from(grid.children);
-        const mainTextCol = gridChildren.find(child => child.querySelector('h2'));
-        if (mainTextCol) {
-          contentCell = mainTextCol;
-        } else {
-          // fallback if unexpected structure: use grid
-          contentCell = grid;
-        }
-      } else {
-        // fallback: use cardBody
-        contentCell = cardBody;
-      }
-    } else {
-      // fallback: use card
-      contentCell = card;
-    }
+  // Find the main content block: container with headline and content (usually .card-body or .container)
+  // We want the whole content stack (not just the h2) to preserve headings, paragraphs, list, and button
+  let contentBlock = null;
+  // Try .card-body
+  const cardBody = element.querySelector('.card-body');
+  if (cardBody) {
+    // We want to include the parent card structure for visual context (headings, text, cta)
+    contentBlock = cardBody.parentElement && cardBody.parentElement.classList.contains('card') ? cardBody.parentElement : cardBody;
   } else {
-    // fallback: use element
-    contentCell = element;
+    // Fallback, the .container block (if no card found)
+    const container = element.querySelector('.container');
+    if (container) {
+      contentBlock = container;
+    }
   }
 
-  // Compose the table rows: header, background image, content
-  const rows = [
+  // Second row: background image (optional)
+  const secondRow = [bgImg ? bgImg : ''];
+  // Third row: structured content (headline, subheadline, cta, etc)
+  const thirdRow = [contentBlock ? contentBlock : ''];
+
+  const cells = [
     headerRow,
-    [bgImg || ''],
-    [contentCell]
+    secondRow,
+    thirdRow
   ];
 
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

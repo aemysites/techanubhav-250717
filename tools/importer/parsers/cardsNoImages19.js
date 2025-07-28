@@ -1,23 +1,22 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row for the Cards block
-  const headerRow = ['Cards'];
-  const rows = [headerRow];
+  // Create the header row as specified
+  const cells = [['Cards']];
 
-  // The block expects each card's text in its own row, no icon/svg, just the <p> description
-  // All direct children are card divs
+  // Find all direct child card divs
   const cardDivs = element.querySelectorAll(':scope > div');
+
   cardDivs.forEach(cardDiv => {
-    // Some card divs may contain more than one <p>, but the only visible content is from the first <p>
+    // Each card consists of an icon and a text paragraph.
+    // Only the text paragraph should be extracted for the card content
     const p = cardDiv.querySelector('p');
     if (p) {
-      rows.push([p]); // Reference the existing <p> element directly
+      // Reference the existing <p> element (keeps formatting/semantics)
+      cells.push([p]);
     }
-    // If a card is missing its <p>, don't add a row (edge case: skip empty or malformed cards)
   });
 
-  // Create the Cards block table
-  const table = WebImporter.DOMUtils.createTable(rows, document);
-  // Replace original with the new table
+  // Create the block table and replace the original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

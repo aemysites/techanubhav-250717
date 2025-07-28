@@ -1,51 +1,51 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Prepare table header
+  // 1. Header row
   const headerRow = ['Hero (hero11)'];
 
-  // Find the main grid with text and image as direct children
-  const grid = element.querySelector('.w-layout-grid.grid-layout');
-  let imageEl = null;
-  let textBlock = null;
-
-  // Get immediate children of the grid
-  if (grid) {
-    const children = grid.querySelectorAll(':scope > *');
-    children.forEach((child) => {
-      if (child.tagName === 'IMG') {
-        imageEl = child;
-      } else if (!textBlock && child.querySelector('h1, h2, h3, h4, h5, h6')) {
-        textBlock = child;
-      }
-    });
+  // 2. Find the main hero image for background image row
+  // Assume the image with a descriptive alt and a src, outside the text area, is the hero image
+  const imgs = element.querySelectorAll('img');
+  let heroImg = null;
+  if (imgs.length) {
+    // Use the last image, as it comes after the text, matching screenshot
+    heroImg = imgs[imgs.length - 1];
   }
 
-  // Row 2: image, optional
-  const imageRow = [imageEl ? imageEl : ''];
-
-  // Row 3: text content (headline, subheading, CTA)
-  let textCellContent = [];
-  if (textBlock) {
-    // Headline
-    const heading = textBlock.querySelector('h1, h2, h3, h4, h5, h6');
-    if (heading) textCellContent.push(heading);
-    // Paragraphs or rich text
-    const paragraphBlocks = textBlock.querySelectorAll('.rich-text, .w-richtext');
-    if (paragraphBlocks.length > 0) {
-      paragraphBlocks.forEach(block => textCellContent.push(block));
-    } else {
-      // Fallback: direct <p> children if no rich text blocks
-      textBlock.querySelectorAll(':scope > p').forEach(p => textCellContent.push(p));
+  // 3. Find the content area (heading, subheading, CTA)
+  // The text content is in the deeply nested div with h2, paragraph, buttons
+  let contentDiv = null;
+  const gridCandidates = element.querySelectorAll(':scope .container');
+  for (const grid of gridCandidates) {
+    const section = grid.querySelector(':scope > .section');
+    if (section && section.querySelector('h2')) {
+      contentDiv = section;
+      break;
     }
-    // CTA buttons (keep full group)
-    const buttonGroup = textBlock.querySelector('.button-group');
-    if (buttonGroup) textCellContent.push(buttonGroup);
   }
-  if (textCellContent.length === 0) textCellContent = [''];
-  const textRow = [textCellContent];
 
-  // Assemble and create the table
-  const cells = [headerRow, imageRow, textRow];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  // Compose text content: heading(s), paragraph(s), CTA(s) as seen in the screenshot/description
+  const textContent = [];
+  if (contentDiv) {
+    // Heading
+    const heading = contentDiv.querySelector('h2');
+    if (heading) textContent.push(heading);
+    // Subheading or paragraph
+    // Try rich-text, paragraph-lg, or just p
+    let subHeading = contentDiv.querySelector('.rich-text, .paragraph-lg, p');
+    if (subHeading) textContent.push(subHeading);
+    // CTA buttons (button-group)
+    const btnGroup = contentDiv.querySelector('.button-group');
+    if (btnGroup) textContent.push(btnGroup);
+  }
+
+  // Table rows
+  const rows = [
+    headerRow,
+    [heroImg ? heroImg : ''],
+    [textContent]
+  ];
+
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

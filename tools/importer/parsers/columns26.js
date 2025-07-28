@@ -1,51 +1,43 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the main content grid in the section
+  // Find the direct .container
   const container = element.querySelector('.container');
   if (!container) return;
-  // The first .grid-layout is the two columns: left (heading/text), right (testimonial)
-  const mainGrid = container.querySelector('.grid-layout');
-  if (!mainGrid) return;
-  // Get the direct children of the main grid
-  const mainGridChildren = Array.from(mainGrid.children);
 
-  // Defensive: ensure at least 3 children: heading, paragraph, and testimonial grid
-  if (mainGridChildren.length < 3) return;
+  // Find the main grid
+  const outerGrid = container.querySelector('.w-layout-grid.grid-layout');
+  if (!outerGrid) return;
 
-  // Left column: heading and paragraph
-  const heading = mainGridChildren[0];
-  const paragraph = mainGridChildren[1];
-  // Compose left column cell
-  const leftColFrag = document.createDocumentFragment();
-  if (heading) leftColFrag.append(heading);
-  if (paragraph) leftColFrag.append(paragraph);
+  // Get the direct children (should be [heading, testimonial, attributionGrid])
+  const gridChildren = Array.from(outerGrid.children);
+  if (gridChildren.length < 3) return;
 
-  // Right column: testimonial block (contains divider, avatar/name/role, and svg logo)
-  const testimonialGrid = mainGridChildren[2];
-  // Defensive: ensure testimonialGrid exists
-  if (!testimonialGrid) return;
+  const headingEl = gridChildren[0];
+  const testimonialEl = gridChildren[1];
+  const attributionGrid = gridChildren[2];
 
-  // Compose right column cell
-  const rightColFrag = document.createDocumentFragment();
-  // Find the row with avatar and name/role
-  const flexRow = testimonialGrid.querySelector('.flex-horizontal');
-  if (flexRow) rightColFrag.append(flexRow);
-  // Find the SVG logo (after the flex row and after the divider)
-  const svgLogo = testimonialGrid.querySelector('svg');
-  if (svgLogo) {
-    // Wrap svg in a div to preserve structure
-    const svgDiv = document.createElement('div');
-    svgDiv.append(svgLogo);
-    rightColFrag.append(svgDiv);
-  }
+  // Attribution grid has:
+  // 0: divider
+  // 1: flex-horizontal y-center flex-gap-xs (avatar, name/title)
+  // 2: svg logo (or similar)
+  // We'll place the avatar/name/title in column 1, logo in column 2 of the table
+  const attrChildren = Array.from(attributionGrid.children);
+  // Defensive: attribution usually in index 1, logo usually in last
+  const leftAttr = [];
+  if (attrChildren[0]) leftAttr.push(attrChildren[0]); // divider
+  if (attrChildren[1]) leftAttr.push(attrChildren[1]); // avatar/name/title
+  // Right column is just the last child (usually logo)
+  const rightAttr = attrChildren[2] ? [attrChildren[2]] : [];
 
-  // Table header as per specification
-  const headerRow = ['Columns (columns26)'];
-  const cells = [
-    headerRow,
-    [leftColFrag, rightColFrag]
-  ];
+  // Build table rows:
+  // Header row: one cell
+  // Second row: two columns (heading, testimonial)
+  // Third row: two columns (attribution, logo)
+  const rows = [];
+  rows.push(['Columns (columns26)']);
+  rows.push([headingEl, testimonialEl]);
+  rows.push([leftAttr, rightAttr]);
 
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

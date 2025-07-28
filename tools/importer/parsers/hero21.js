@@ -1,38 +1,35 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header exactly as required
-  const headerRow = ['Hero (hero21)'];
-
-  // Find the card-body which holds both heading and image
-  const cardBody = element.querySelector('.card-body');
-
-  // Extract image (background visual)
-  let backgroundImg = null;
-  if (cardBody) {
-    backgroundImg = cardBody.querySelector('img');
-  }
-  const imageRow = [backgroundImg ? backgroundImg : ''];
-
-  // Extract Heading (could be any heading element or a styled div)
-  let contentRowContent = [];
-  if (cardBody) {
-    // Find heading: look for h1, h2, h3, h4, h5, h6, or a div/span with class containing 'heading'
-    let heading = cardBody.querySelector('h1, h2, h3, h4, h5, h6, .h1-heading, .h2-heading, .h3-heading, .h4-heading, .h5-heading, .h6-heading');
-    if (heading) {
-      // Use the original element (do not clone or create new)
-      contentRowContent.push(heading);
+  // Helper to get direct descendant by class
+  function findDescendantByClass(el, className) {
+    for (const child of el.children) {
+      if (child.classList && child.classList.contains(className)) return child;
+      const found = findDescendantByClass(child, className);
+      if (found) return found;
     }
-    // Future extensibility: include subheading, CTA, or more if present
+    return null;
   }
-  // Always provide a cell, even if empty
-  const contentRow = [contentRowContent.length ? contentRowContent : ''];
 
-  // Assemble table
-  const cells = [
-    headerRow,
-    imageRow,
-    contentRow
+  // 1. Find the image (row 2)
+  let image = null;
+  // Traverse to the deepest img in the element
+  image = element.querySelector('img');
+
+  // 2. Find the title/heading (row 3)
+  // Try to find a heading element (h1/h2/h3/h4/etc.) or .h4-heading
+  let heading = element.querySelector('.h4-heading, h1, h2, h3, h4, h5, h6');
+
+  // If no image or heading found, handle gracefully
+  // (use null in the table cell, which will render an empty cell)
+
+  // Table rows
+  const rows = [
+    ['Hero (hero21)'],
+    [image || ''],
+    [heading || '']
   ];
-  const block = WebImporter.DOMUtils.createTable(cells, document);
+
+  // Create block table
+  const block = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(block);
 }

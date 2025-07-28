@@ -1,42 +1,36 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Prepare header row as in the example
+  // 1. Header row: block name as specified
   const headerRow = ['Hero (hero14)'];
 
-  // Get main grid
-  const grid = element.querySelector('.w-layout-grid');
-  if (!grid) return;
-  const gridChildren = grid.querySelectorAll(':scope > div');
-
-  // Background image (row 2): first grid child should have the background image
-  let bgImage = '';
-  if (gridChildren.length > 0) {
-    const img = gridChildren[0].querySelector('img.cover-image');
-    if (img) bgImage = img;
-  }
-
-  // Content (row 3): second grid child has the content
-  let content = '';
-  if (gridChildren.length > 1) {
-    const textContainer = gridChildren[1];
-    // Usually the text is inside utility-margin-bottom-6rem, but fallback to all children
-    const mainContent = textContainer.querySelector('.utility-margin-bottom-6rem');
-    if (mainContent) {
-      content = mainContent;
-    } else {
-      // fallback: include all children
-      const frag = document.createDocumentFragment();
-      Array.from(textContainer.children).forEach(child => frag.appendChild(child));
-      content = frag;
+  // 2. Background image row (row 2): find the background image on the left grid column
+  let imageCell = '';
+  const grid = element.querySelector('.grid-layout');
+  if (grid && grid.children.length > 0) {
+    const leftCol = grid.children[0];
+    const backgroundImg = leftCol.querySelector('img');
+    if (backgroundImg) {
+      imageCell = backgroundImg;
     }
   }
 
-  // Compose block table as 1col x 3rows
-  const rows = [
+  // 3. Content row: heading, subheading, cta etc (right grid column)
+  let contentCell = '';
+  if (grid && grid.children.length > 1) {
+    const rightCol = grid.children[1];
+    // The content is typically inside a main container, but fallback to the column
+    const contentContainer = rightCol.querySelector('.utility-margin-bottom-6rem') || rightCol;
+    contentCell = contentContainer;
+  }
+
+  // Build the table cells as per spec: 1 col, 3 rows
+  const cells = [
     headerRow,
-    [bgImage],
-    [content]
+    [imageCell],
+    [contentCell],
   ];
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+
+  // Create the table and replace the element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

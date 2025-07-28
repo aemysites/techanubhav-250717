@@ -1,14 +1,22 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // The HTML only provides images, no text or CTAs for each card
+  // 1. Table header row as required
   const headerRow = ['Cards (cards8)'];
-  const cardDivs = Array.from(element.querySelectorAll(':scope > .utility-aspect-1x1'));
-  const rows = [headerRow];
-  cardDivs.forEach((cardDiv) => {
-    const img = cardDiv.querySelector('img');
-    // Reference the existing image node, put empty string for text cell as there is no text content
-    rows.push([img, '']);
+
+  // 2. Reference all immediate card containers (each holds an image)
+  const cardDivs = element.querySelectorAll(':scope > .utility-aspect-1x1');
+
+  // 3. Each card gets two cells: image, then an empty string for text (since there is no text)
+  const rows = Array.from(cardDivs).map(div => {
+    const img = div.querySelector('img');
+    // If img is missing, use an empty string (unlikely, but safe)
+    return [img || '', ''];
   });
-  const table = WebImporter.DOMUtils.createTable(rows, document);
-  element.replaceWith(table);
+
+  // 4. Compose and create the table
+  const tableCells = [headerRow, ...rows];
+  const block = WebImporter.DOMUtils.createTable(tableCells, document);
+
+  // 5. Replace the original element
+  element.replaceWith(block);
 }

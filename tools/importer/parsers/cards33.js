@@ -1,44 +1,46 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Block header row as per spec
-  const headerRow = ['Cards (cards33)'];
-  const rows = [headerRow];
+  // Build table header
+  const cells = [
+    ['Cards (cards33)']
+  ];
 
-  // Find all direct <a> children (cards)
+  // Get all direct <a> (card) children
   const cards = element.querySelectorAll(':scope > a');
 
   cards.forEach((card) => {
-    // Get the image (first img in the card)
+    // Card image (mandatory)
     const img = card.querySelector('img');
-
-    // The block containing the text content is the div in the card (not the grid, not image)
-    let textDiv;
-    // find the grid inside <a>, then its children
-    const cardGrid = card.querySelector('div.w-layout-grid');
-    if (cardGrid) {
-      // cardGrid has 2 children: img + text div
-      const children = Array.from(cardGrid.children);
-      textDiv = children.find((child) => child !== img && child.tagName === 'DIV');
-    }
-    // Fallback: grab the last div in the card
-    if (!textDiv) {
-      const divs = card.querySelectorAll('div');
-      textDiv = divs[divs.length - 1];
-    }
-    // For textDiv, remove any trailing "Read" div to avoid redundancy
-    if (textDiv) {
-      // Find direct child divs with text 'Read' and remove
-      Array.from(textDiv.children).forEach((child) => {
-        if (child.tagName === 'DIV' && child.textContent.trim() === 'Read') {
-          child.remove();
+    
+    // Card text content (mandatory)
+    // Inside the <a>, it's the .w-layout-grid > div that does NOT contain <img>
+    let contentDiv = null;
+    const innerGrid = card.querySelector('.w-layout-grid');
+    if (innerGrid) {
+      const divs = innerGrid.querySelectorAll(':scope > div');
+      for (const div of divs) {
+        if (!div.querySelector('img')) {
+          contentDiv = div;
+          break;
         }
-      });
+      }
     }
-    // Compose the row: [image, text content]
-    rows.push([img, textDiv]);
+
+    // Remove the "Read" div at the end, since it's not a link (CTA is text only here)
+    if (contentDiv && contentDiv.lastElementChild && contentDiv.lastElementChild.textContent.trim().toLowerCase() === 'read') {
+      contentDiv.lastElementChild.remove();
+    }
+
+    // Ensure both image and contentDiv exist
+    if (img && contentDiv) {
+      cells.push([
+        img,
+        contentDiv
+      ]);
+    }
   });
 
-  // Create block table and replace the element
-  const block = WebImporter.DOMUtils.createTable(rows, document);
-  element.replaceWith(block);
+  // Create and replace with the cards block table
+  const table = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(table);
 }

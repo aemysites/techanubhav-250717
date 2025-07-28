@@ -1,34 +1,27 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the grid layout containing the columns
-  const grid = element.querySelector('.grid-layout');
+  // Find the main container with the grid layout containing columns
+  const grid = element.querySelector('.w-layout-grid');
   if (!grid) return;
 
-  // Get each column (direct children of grid)
-  const columns = Array.from(grid.children);
-  if (columns.length === 0) return;
-
-  // The header row must be a single cell/column, regardless of content columns
-  const rows = [
-    ['Columns (columns27)'], // header row: always one cell
-    columns, // content row: one cell per column
-  ];
-  const table = WebImporter.DOMUtils.createTable(rows, document);
-
-  // Fix the header row: merge the header <th> across all columns using colspan
-  // WebImporter.DOMUtils.createTable doesn't support colspan directly, so patch it here
-  const th = table.querySelector('tr:first-child th');
-  if (th && columns.length > 1) {
-    th.setAttribute('colspan', columns.length);
-    // Remove any extra th created in the header row
-    let nextTh = th.nextElementSibling;
-    while (nextTh) {
-      let remove = nextTh;
-      nextTh = nextTh.nextElementSibling;
-      remove.parentNode.removeChild(remove);
+  // Get all immediate children of the grid; should be 2 for this layout
+  const gridChildren = Array.from(grid.children);
+  // Expecting: [leftCol (content), rightCol (img)]
+  let leftCol = null;
+  let rightCol = null;
+  for (const child of gridChildren) {
+    if (!leftCol && child.tagName !== 'IMG') {
+      leftCol = child;
+    } else if (!rightCol && child.tagName === 'IMG') {
+      rightCol = child;
     }
   }
 
-  // Replace the original element with the new block table
+  // Build table
+  const headerRow = ['Columns (columns27)'];
+  const colsRow = [leftCol, rightCol].filter(Boolean); // Only add columns that exist
+  const cells = [headerRow, colsRow];
+
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }
