@@ -1,29 +1,34 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row must match the example exactly
+  // Get all direct child divs (columns)
+  const columns = Array.from(element.querySelectorAll(':scope > div'));
+  // For the content row, extract the image from each column
+  const contentRow = columns.map(col => {
+    const img = col.querySelector('img');
+    return img || '';
+  });
+  // Header row: single cell, as required
   const headerRow = ['Columns (columns5)'];
 
-  // Each immediate child div is a column - collect all of its content (not just images)
-  const columns = Array.from(element.children);
-
-  // For each column, collect all of its children as content (so we get images, text, or anything else)
-  const contentRow = columns.map((col) => {
-    // If the column has more than one child, return an array of all child elements
-    // If the column is empty, return empty string
-    // If only one child, return that node directly
-    const nodes = Array.from(col.childNodes).filter(node => {
-      // Ignore empty text nodes
-      return node.nodeType !== Node.TEXT_NODE || node.textContent.trim() !== '';
-    });
-    if (nodes.length === 0) return '';
-    if (nodes.length === 1) return nodes[0];
-    return nodes;
-  });
-
+  // Use createTable as normal, then manually fix colSpan on the header cell
   const table = WebImporter.DOMUtils.createTable([
     headerRow,
-    contentRow,
+    contentRow
   ], document);
 
+  // Manually set the colspan for the first th to span all content columns
+  const th = table.querySelector('th');
+  if (th && contentRow.length > 1) {
+    th.setAttribute('colspan', contentRow.length);
+    // Remove any empty th siblings accidentally created by createTable
+    let sibling = th.nextElementSibling;
+    while (sibling) {
+      const next = sibling.nextElementSibling;
+      sibling.remove();
+      sibling = next;
+    }
+  }
+
+  // Replace the original element with the newly created table
   element.replaceWith(table);
 }

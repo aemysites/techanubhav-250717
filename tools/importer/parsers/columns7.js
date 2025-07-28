@@ -1,26 +1,24 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the grid element containing columns
+  // Find the grid container holding the columns
   const grid = element.querySelector('.w-layout-grid');
-  let colElements = [];
-  if (grid) {
-    colElements = Array.from(grid.children);
-  } else {
-    colElements = Array.from(element.children);
-  }
-  // Remove empty columns, just in case
-  colElements = colElements.filter(col => {
-    return col.textContent.trim() !== '' || col.children.length > 0;
-  });
-  // Table header: exactly one cell, as per spec
+  if (!grid) return;
+  
+  // Get immediate children of the grid (the actual columns)
+  const columns = Array.from(grid.children);
+  if (!columns.length) return;
+
+  // The header row should have exactly one cell, per the example
   const headerRow = ['Columns (columns7)'];
-  // Content row: as many cells as columns in grid
-  const contentRow = colElements;
-  // Build the table: header is always a single cell, content row matches columns
-  const cells = [
+  // The content row contains one cell per column
+  const contentRow = columns;
+
+  // Build the block table
+  const block = WebImporter.DOMUtils.createTable([
     headerRow,
     contentRow
-  ];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(table);
+  ], document);
+
+  // Replace the original element with the new block
+  element.replaceWith(block);
 }

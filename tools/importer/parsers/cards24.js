@@ -1,37 +1,43 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row matches the block name
+  // Table header row
   const headerRow = ['Cards (cards24)'];
+  const rows = [headerRow];
 
-  // Find all card blocks (direct <a> children)
-  const cardLinks = Array.from(element.querySelectorAll(':scope > a'));
+  // Select all direct card links
+  const cards = element.querySelectorAll(':scope > a');
 
-  const rows = cardLinks.map(card => {
-    // Image (always present, first <img> in the first child div)
-    const imageDiv = card.querySelector(':scope > div');
-    let img = null;
-    if (imageDiv) {
-      img = imageDiv.querySelector('img');
+  cards.forEach(card => {
+    // --- IMAGE COLUMN ---
+    // Grab the first <img> inside the card
+    let imgEl = null;
+    const imgContainer = card.querySelector('.utility-aspect-2x3');
+    if (imgContainer) {
+      imgEl = imgContainer.querySelector('img');
     }
-
-    // Text content cell construction
-    const textCell = [];
-    // Get meta info: tag and date (optional)
-    const metaDiv = card.querySelector('.flex-horizontal');
-    if (metaDiv) {
-      // Reference the metaDiv directly, so layout and classes can be preserved if needed
-      textCell.push(metaDiv);
+    // --- TEXT CONTENT COLUMN ---
+    // Tag & Date row
+    const tagDateDiv = card.querySelector('.flex-horizontal');
+    let tagDateFrag = null;
+    if (tagDateDiv) {
+      // Reference the existing container as a whole, which includes tag and date
+      tagDateFrag = tagDateDiv;
     }
-    // Heading (mandatory)
-    const heading = card.querySelector('h3');
-    if (heading) {
-      textCell.push(heading);
-    }
-    return [img, textCell];
+    // Heading/title
+    // Use existing heading node if present
+    let titleEl = card.querySelector('h3, .h4-heading');
+    // Compose content for second cell
+    const textCol = [];
+    if (tagDateFrag) textCol.push(tagDateFrag);
+    if (titleEl) textCol.push(titleEl);
+    // Add the row to the table
+    rows.push([
+      imgEl,
+      textCol.length === 1 ? textCol[0] : textCol
+    ]);
   });
 
-  // Compose final table array
-  const tableArray = [headerRow, ...rows];
-  const table = WebImporter.DOMUtils.createTable(tableArray, document);
-  element.replaceWith(table);
+  // Create and replace with the cards block table
+  const block = WebImporter.DOMUtils.createTable(rows, document);
+  element.replaceWith(block);
 }

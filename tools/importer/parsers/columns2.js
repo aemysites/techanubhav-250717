@@ -1,51 +1,48 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // 1. Find the main 3-column grid inside the section
-  const container = element.querySelector('.container');
-  if (!container) return;
-  const grid = container.querySelector('.grid-layout');
-  if (!grid) return;
-  const gridChildren = Array.from(grid.children); // generally 3: left, middle, right
-
-  // Edge case: if not 3, bail
-  if (gridChildren.length < 3) return;
-
-  // LEFT COLUMN: single main feature (just reference its block)
-  const leftCol = gridChildren[0];
-  // MIDDLE COLUMN: vertical block of two links with images (reference both in an array)
-  const middleCol = gridChildren[1];
-  const middleLinks = Array.from(middleCol.querySelectorAll(':scope > a'));
-  // RIGHT COLUMN: stack of link blocks separated by dividers (reference all except the dividers)
-  const rightCol = gridChildren[2];
-  // We'll preserve the divider elements visually by referencing all children as-is
-  const rightColNodes = Array.from(rightCol.childNodes).filter(node => {
-    // retain <a> blocks and .divider divs
-    return (node.nodeType === 1 && (node.matches('a') || node.classList.contains('divider')));
-  });
-
-  // Helper: wrap nodes in a div for context
-  function wrapContent(nodes) {
-    const div = document.createElement('div');
-    if (Array.isArray(nodes)) {
-      nodes.forEach(n => div.appendChild(n));
-    } else if (nodes) {
-      div.appendChild(nodes);
-    }
-    return div;
+  // Helper: Get immediate child by class (not recursing)
+  function childByClass(parent, className) {
+    return Array.from(parent.children).find(child => child.classList.contains(className));
   }
 
-  // Build table cells referencing document elements directly
-  const leftCell = wrapContent(leftCol);
-  const middleCell = wrapContent(middleLinks);
-  const rightCell = wrapContent(rightColNodes);
+  // Get the 'container' and 'grid-layout' wrappers
+  const container = childByClass(element, 'container');
+  if (!container) return;
+  const grid = childByClass(container, 'grid-layout');
+  if (!grid) return;
 
-  // 2. Table header row - MUST be block name from assignment, match exactly. No variant for this block.
-  const headerRow = ['Columns (columns2)'];
-  // 3. Data row: each column is a cell
-  const dataRow = [leftCell, middleCell, rightCell];
+  // The grid contains: [Left main column, flex-horizontal (top), flex-horizontal (bottom)]
+  // 1. Left main column: the big featured a.utility-link-content-block
+  let leftCol = null;
+  for (const child of grid.children) {
+    if (
+      child.tagName === 'A' &&
+      child.classList.contains('utility-link-content-block') &&
+      child.querySelector('h3.h2-heading')
+    ) {
+      leftCol = child;
+      break;
+    }
+  }
 
-  // 4. Build and replace
-  const cells = [headerRow, dataRow];
+  // 2. The first flex-horizontal.flex-vertical.flex-gap-sm (top right with 2 features)
+  // 3. The second flex-horizontal.flex-vertical.flex-gap-sm (bottom right with 6 links)
+  // We'll gather both for the right column.
+  const flexBlocks = Array.from(grid.querySelectorAll(':scope > .flex-horizontal.flex-vertical.flex-gap-sm'));
+  // Defensive: ensure two vertical stacks exist
+  const rightColFragments = [];
+  for (const block of flexBlocks) {
+    rightColFragments.push(block);
+  }
+
+  // Compose the cells for the main block table
+  // HEADER FIX: must be a single cell, not two
+  const header = ['Columns (columns2)'];
+  // The content row is an array with two columns
+  const row = [leftCol, rightColFragments];
+  const cells = [header, row];
+
+  // Create the block table
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

@@ -1,41 +1,26 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find grid-layout in the section
-  const grid = element.querySelector('.grid-layout');
+  // Find the grid layout that holds the columns
+  const grid = element.querySelector('.w-layout-grid');
   if (!grid) return;
-  const gridChildren = Array.from(grid.children);
+  // Get all direct children of the grid (no deep query for resilience)
+  const columns = Array.from(grid.children);
 
-  // Identify three expected parts: left (headings), center (contact info), right (image)
-  let leftCol = null, centerCol = null, rightCol = null;
-  for (const child of gridChildren) {
-    if (!leftCol && child.tagName === 'DIV') leftCol = child;
-    else if (!centerCol && child.tagName === 'UL') centerCol = child;
-    else if (!rightCol && child.tagName === 'IMG') rightCol = child;
-  }
-  if (!leftCol) leftCol = gridChildren.find(el => el.tagName === 'DIV');
-  if (!centerCol) centerCol = gridChildren.find(el => el.tagName === 'UL');
-  if (!rightCol) rightCol = gridChildren.find(el => el.tagName === 'IMG');
+  // For this block, there are 3 columns: text, list, image
+  // Reference the actual elements from the DOM to preserve all content
+  const leftCol = columns[0] || document.createElement('div');
+  const midCol = columns[1] || document.createElement('div');
+  const rightCol = columns[2] || document.createElement('div');
 
-  // Compose left column content
-  let leftColContent = [];
-  if (leftCol) leftColContent = Array.from(leftCol.childNodes).filter(node => {
-    if (node.nodeType === Node.ELEMENT_NODE) return true;
-    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) return true;
-    return false;
-  });
-  if (leftColContent.length === 0 && leftCol) leftColContent = [leftCol];
+  // Table header should be a SINGLE cell (one column), matching the example
+  const headerRow = ['Columns (columns18)'];
+  // Table content row: three columns (as in the example)
+  const contentRow = [leftCol, midCol, rightCol];
 
-  // Compose center and right columns
-  const centerColContent = centerCol ? [centerCol] : [];
-  const rightColContent = rightCol ? [rightCol] : [];
+  const table = WebImporter.DOMUtils.createTable([
+    headerRow,
+    contentRow
+  ], document);
 
-  // Prepare the cells with single header cell (fix for critical header row issue)
-  const cells = [
-    ['Columns (columns18)'], // Single cell for the header row
-    [leftColContent, centerColContent, rightColContent] // One cell per column for content row
-  ];
-
-  // Create block table
-  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

@@ -1,38 +1,39 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the tab menu
-  const menu = element.querySelector('[role="tablist"]');
-  const tabLinks = menu ? Array.from(menu.querySelectorAll('a[role="tab"]')) : [];
+  // Find the tab menu (labels) and tab contents
+  const tabMenu = element.querySelector('.w-tab-menu');
+  const tabContent = element.querySelector('.w-tab-content');
+  if (!tabMenu || !tabContent) return;
 
-  // Extract labels as strings
-  const tabLabels = tabLinks.map(link => {
-    // Try to get the text from a nested div (for e.g. <div>Trends</div>)
+  // Extract tab labels dynamically in order
+  const labelLinks = Array.from(tabMenu.querySelectorAll('a'));
+  const labels = labelLinks.map(link => {
     const labelDiv = link.querySelector('div');
     return labelDiv ? labelDiv.textContent.trim() : link.textContent.trim();
   });
 
-  // Find tab panes (content)
-  const contentContainer = element.querySelector('.w-tab-content');
-  const tabPanes = contentContainer ? Array.from(contentContainer.children) : [];
+  // Extract tab content panes (in order)
+  const tabPanes = Array.from(tabContent.querySelectorAll('.w-tab-pane'));
 
-  // Helper to get primary content of a tab pane (prefer .grid-layout as main container)
-  function getTabContent(pane) {
-    if (!pane) return document.createElement('div');
-    const grid = pane.querySelector('.grid-layout');
-    return grid ? grid : pane;
-  }
+  // Fix: header row should be ['Tabs', ''] to match the two-column structure for all rows
+  // But we want the <th>Tabs</th> cell to span two columns, as in the example (single cell header row)
+  // We'll use a table with the first row: [th Tabs colspan=2]
+  // To accomplish this, createTable must receive only one cell in the header row
+  // So we create a <th> element with colspan=2
+  const th = document.createElement('th');
+  th.textContent = 'Tabs';
+  th.setAttribute('colspan', '2');
+  const headerRow = [th];
 
-  // Build rows: 1 header, then each tab (label, content)
-  const rows = [['Tabs']];
-  for (let i = 0; i < tabLabels.length; i++) {
-    const label = tabLabels[i];
-    // Reference original element for content
-    const pane = tabPanes[i];
-    const content = getTabContent(pane);
-    rows.push([label, content]);
-  }
+  const rows = tabPanes.map((pane, i) => {
+    const label = labels[i] || '';
+    let tabContentBlock = pane.querySelector('div');
+    if (!tabContentBlock) tabContentBlock = pane;
+    return [label, tabContentBlock];
+  });
+  const cells = [headerRow, ...rows];
 
-  // Create and replace
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  // Create the block table and replace the original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

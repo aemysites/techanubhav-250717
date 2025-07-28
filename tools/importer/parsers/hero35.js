@@ -1,49 +1,49 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the main content block inside the section
-  const topDiv = element.querySelector(':scope > div');
-  let backgroundImage = null; // No background image in provided HTML
+  // Table header must match example exactly
+  const headerRow = ['Hero (hero35)'];
 
-  // Find grid with actual content
-  let grid = null;
-  if (topDiv) {
-    grid = topDiv.querySelector('.w-layout-grid');
-  }
+  // No background image in the provided HTML, so second row is empty string
+  const backgroundRow = [''];
 
-  let heading = null;
-  let subheading = null;
-  let cta = null;
-
-  if (grid) {
-    // The grid has one div (text/subheading) and one a (cta)
-    const children = grid.querySelectorAll(':scope > *');
-    for (const child of children) {
-      if (child.tagName === 'DIV') {
-        // Grab heading and subheading from this div
-        heading = child.querySelector('h2');
-        subheading = child.querySelector('p');
-      } else if (child.tagName === 'A') {
-        cta = child;
+  // Content row: collect headline, subheading, CTA
+  // Layout: section > div.container > div.grid-layout > [div (text), a (cta)]
+  let contentElements = [];
+  const container = element.querySelector('.container');
+  if (container) {
+    const grid = container.querySelector('.grid-layout');
+    if (grid) {
+      // Find the text div (contains headline and subheading)
+      let textDiv = null;
+      let cta = null;
+      for (const child of grid.children) {
+        if (child.tagName === 'DIV' && !textDiv) {
+          textDiv = child;
+        } else if (child.tagName === 'A' && !cta) {
+          cta = child;
+        }
+      }
+      if (textDiv) {
+        // Include all element children (headings, paragraphs, etc.)
+        contentElements.push(...Array.from(textDiv.children));
+      }
+      if (cta) {
+        contentElements.push(cta);
       }
     }
   }
+  // If nothing was found, insert empty string to preserve structure
+  if (contentElements.length === 0) {
+    contentElements = [''];
+  }
 
-  // Build the content row with only available elements, preserving order and reference
-  const contentRow = [];
-  if (heading) contentRow.push(heading);
-  if (subheading) contentRow.push(subheading);
-  if (cta) contentRow.push(cta);
+  const contentRow = [contentElements];
 
-  // Table: 1 column, 3 rows
-  // 1: Header row
-  // 2: Background Image (none in this case)
-  // 3: Content (heading, subheading, cta)
-  const tableRows = [
-    ['Hero (hero35)'],
-    [backgroundImage || ''],
-    [contentRow]
+  const cells = [
+    headerRow,
+    backgroundRow,
+    contentRow,
   ];
-
-  const table = WebImporter.DOMUtils.createTable(tableRows, document);
-  element.replaceWith(table);
+  const block = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(block);
 }

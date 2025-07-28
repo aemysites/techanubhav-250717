@@ -1,26 +1,25 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the grid containing the images
+  // Find the grid containing the carousel slides
   const grid = element.querySelector('.w-layout-grid');
   if (!grid) return;
+  const slides = Array.from(grid.children);
 
-  // Get all container divs for slides (immediate children of the grid)
-  const slideDivs = Array.from(grid.children);
+  // Build rows for the carousel block
+  // Header row: single cell, as in the markdown example
+  const rows = [['Carousel']];
 
-  // Prepare table rows
-  const cells = [];
-  // Header row: exactly one cell as in the example
-  cells.push(['Carousel']);
-
-  // Each slide: first cell is the image, second cell is text (none in this HTML)
-  slideDivs.forEach(div => {
-    const img = div.querySelector('img');
-    // Only add row if image present
+  // All data rows must have two columns, even if the second is empty
+  slides.forEach(slide => {
+    const img = slide.querySelector('img');
     if (img) {
-      cells.push([img, '']); // Two columns: image, empty text
+      rows.push([img, '']);
     }
   });
 
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  // Now, ensure that the header row is truly a single cell,
+  // but all subsequent rows are arrays of two cells.
+  // WebImporter.DOMUtils.createTable will handle colspan automatically.
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

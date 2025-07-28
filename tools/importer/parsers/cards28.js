@@ -1,47 +1,46 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Compose the header row as specified
-  const headerRow = ['Cards (cards28)'];
-  const cells = [headerRow];
+  // Compose header
+  const cells = [['Cards (cards28)']];
 
-  // Find all tab panes (each tab may have a grid of cards)
-  const tabPanes = element.querySelectorAll('.w-tab-pane');
-  tabPanes.forEach((pane) => {
-    // Each grid contains card <a> elements
-    const grid = pane.querySelector('.w-layout-grid');
-    if (!grid) return; // Ensure grid exists
+  // Gather all grids (each tab-pane has one grid)
+  const grids = element.querySelectorAll('.w-layout-grid.grid-layout');
+
+  grids.forEach(grid => {
+    // Each grid contains card links (some with image, some without)
     const cards = grid.querySelectorAll('a.utility-link-content-block, a.card-link.secondary-card-link.utility-link-content-block');
-    cards.forEach((card) => {
-      // Get the first image (if present) from an optional .utility-aspect-3x2 div in the card
-      let img = null;
-      const imgDiv = card.querySelector('.utility-aspect-3x2');
-      if (imgDiv) {
-        img = imgDiv.querySelector('img');
+    cards.forEach(card => {
+      // First cell: image (if present)
+      let image = null;
+      const imgEl = card.querySelector('.utility-aspect-3x2 img');
+      if (imgEl) {
+        image = imgEl;
       }
-      // For cards without image, img is null
-      const imageCell = img ? img : '';
-
-      // For the text, gather the heading (h3/h4/h2/h1) and description (first .paragraph-sm)
-      // Ensure we reference existing nodes
-      let heading = card.querySelector('h1, h2, h3, h4, h5, h6');
-      let desc = card.querySelector('.paragraph-sm');
-      // Sometimes they're nested in .utility-text-align-center
-      if ((!heading || !desc) && card.querySelector('.utility-text-align-center')) {
-        const center = card.querySelector('.utility-text-align-center');
-        if (!heading) heading = center.querySelector('h1, h2, h3, h4, h5, h6');
-        if (!desc) desc = center.querySelector('.paragraph-sm');
-      }
-      // Defensive: if both missing, skip this card
-      if (!heading && !desc && !img) return;
+      // Second cell: text content (heading and description)
       const textCell = [];
-      if (heading) textCell.push(heading);
-      if (desc && desc !== heading) textCell.push(desc);
-      // Push the card row
-      cells.push([imageCell, textCell]);
+      const heading = card.querySelector('h3.h4-heading');
+      if (heading) {
+        // Use a <strong> for heading text, to match markdown semantics
+        const strong = document.createElement('strong');
+        strong.textContent = heading.textContent.trim();
+        textCell.push(strong);
+      }
+      const desc = card.querySelector('div.paragraph-sm');
+      if (desc) {
+        // Add line break only if heading exists and description exists
+        if (textCell.length > 0) {
+          textCell.push(document.createElement('br'));
+        }
+        textCell.push(desc);
+      }
+      cells.push([
+        image ? image : '',
+        textCell.length === 1 ? textCell[0] : textCell
+      ]);
     });
   });
 
-  // Create table and replace element
+  // Create and replace
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

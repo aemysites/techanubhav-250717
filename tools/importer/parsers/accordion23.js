@@ -1,25 +1,29 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header as per the block name in the instructions
+  // Header row as in example
   const headerRow = ['Accordion (accordion23)'];
-  const rows = [headerRow];
 
-  // Each accordion item is a direct child.div with class "divider"
-  const accordionDividers = Array.from(element.querySelectorAll(':scope > .divider'));
-  accordionDividers.forEach(divider => {
-    // Within each divider, find the grid container
-    const grid = divider.querySelector('.grid-layout');
-    if (!grid) return; // Defensive: skip if missing
-    // This grid should have two children: the title and the content
-    const gridChildren = Array.from(grid.children);
-    if (gridChildren.length < 2) return; // Defensive: skip if missing either
-    const titleEl = gridChildren[0];
-    const contentEl = gridChildren[1];
-    // Reference the original DOM nodes
-    rows.push([titleEl, contentEl]);
-  });
+  // Each accordion row is: [title element, content element]
+  // In this structure, accordion items are direct children with class 'divider'
+  const rows = [];
 
-  // Create and replace with the accordion block table
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  const accordionItems = Array.from(element.querySelectorAll(':scope > .divider'));
+  for (const item of accordionItems) {
+    // Find the immediate .w-layout-grid child inside divider
+    const grid = item.querySelector(':scope > .w-layout-grid');
+    if (!grid) continue;
+    // The grid has two children: h4-heading (title), rich-text (content)
+    const children = Array.from(grid.children);
+    const titleEl = children.find(child => child.classList.contains('h4-heading'));
+    const contentEl = children.find(child => child.classList.contains('rich-text'));
+    // Defensive: only add rows with both
+    if (titleEl && contentEl) {
+      rows.push([titleEl, contentEl]);
+    }
+  }
+
+  // Compose the table data as required
+  const tableData = [headerRow, ...rows];
+  const table = WebImporter.DOMUtils.createTable(tableData, document);
   element.replaceWith(table);
 }

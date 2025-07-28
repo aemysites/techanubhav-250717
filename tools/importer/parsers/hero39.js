@@ -1,43 +1,61 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header row exactly as specified
+  // 1. Header row - use exact block name
   const headerRow = ['Hero (hero39)'];
 
-  // Find the background image (if present)
-  const bgImg = element.querySelector('img.cover-image');
-  const imageRow = [bgImg ? bgImg : ''];
-
-  // Find the headline (h1)
-  const h1 = element.querySelector('h1');
-  // Find paragraph (subheading/description), which is after h1 in the visual order
-  let para = null;
-  // Find the CTAs (could be <a>), also after h1
-  let cta = null;
-  // The text and buttons are often grouped inside a container, but fall back if not
-  const containerCandidates = Array.from(element.querySelectorAll('.flex-vertical, .w-layout-grid, .utility-position-relative'));
-  for (const wrapper of containerCandidates) {
-    // Find the first paragraph and button in order
-    if (!para) para = wrapper.querySelector('p');
-    if (!cta) cta = wrapper.querySelector('a.button, a.w-button, a');
+  // 2. Background image row
+  // Find the first <img> used as a background (not decorative overlays)
+  let bgImg = null;
+  // Try to find the main section grid (there may be nested grids)
+  let innerGrids = element.querySelectorAll(':scope > div, :scope > .w-layout-grid, :scope > .grid-layout');
+  // The first grid typically contains the image and overlay
+  if (innerGrids.length > 0) {
+    // In the first grid div, look for an img
+    bgImg = innerGrids[0].querySelector('img');
   }
-  // fallback: global search if not found
-  if (!para) para = element.querySelector('p');
-  if (!cta) cta = element.querySelector('a.button, a.w-button, a');
+  // Fallback: any direct child img
+  if (!bgImg) {
+    bgImg = element.querySelector('img');
+  }
+  const bgImageRow = [bgImg ? bgImg : '']; // Reference the actual element if found
 
-  // Compose content fragment in correct order (headline, para, CTA)
-  const contentFrag = document.createDocumentFragment();
-  if (h1) contentFrag.appendChild(h1);
-  if (para) contentFrag.appendChild(para);
-  if (cta) contentFrag.appendChild(cta);
+  // 3. Content row (headline, subheading, CTA)
+  // Find the cell that contains headings/paragraphs/buttons -- it's typically the second grid div
+  let contentCell = null;
+  if (innerGrids.length > 1) {
+    contentCell = innerGrids[1];
+  } else {
+    // Fallback: sometimes only one grid, so look for container
+    contentCell = element.querySelector('.container');
+  }
+  // The content is a grid that has an h1, p, and button(s)
+  let rowContent = [];
+  if (contentCell) {
+    // The grid cell may itself have sub-grids, but we want the main heading and everything beneath.
+    // Get the inner grid or just use all children
+    let innerContent = contentCell.querySelector('.w-layout-grid, .grid-layout, .y-bottom');
+    if (innerContent) {
+      // collect all direct children (so heading, then flex-vertical div)
+      Array.from(innerContent.children).forEach((child) => {
+        rowContent.push(child);
+      });
+    } else {
+      // fallback: push all children of the contentCell
+      Array.from(contentCell.children).forEach((child) => {
+        rowContent.push(child);
+      });
+    }
+  }
+  if (!rowContent.length) rowContent = [''];
 
-  // Build the rows
-  const rows = [
+  // Compose the table
+  const cells = [
     headerRow,
-    imageRow,
-    [contentFrag],
+    bgImageRow,
+    [rowContent]
   ];
 
-  // Create the block table and replace the element
-  const table = WebImporter.DOMUtils.createTable(rows, document);
-  element.replaceWith(table);
+  // Create and replace
+  const block = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(block);
 }
