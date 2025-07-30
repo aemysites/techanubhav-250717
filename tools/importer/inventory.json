@@ -1,0 +1,282 @@
+{
+  "fragments": [
+    {
+      "name": "nav",
+      "path": "/nav",
+      "totalBoxes": 1,
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/help/faqs",
+          "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+          "uuid": "8932d0be-00-ec260e70fd0d109a7b00561467202bbb97cfb965",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]"
+        },
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-00-ec260e70fd0d109a7b00561467202bbb97cfb965",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]"
+        }
+      ],
+      "styles": {
+        "height": 49,
+        "background": "rgb(242, 242, 244) none repeat scroll 0% 0% / auto padding-box border-box"
+      }
+    },
+    {
+      "name": "footer",
+      "path": "/footer",
+      "totalBoxes": 1,
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/help/faqs",
+          "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+          "uuid": "8932d0be-05-576870337abf0aa323a1fe75a33f2b359b589104",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer[1]/div[1]/p[1]"
+        },
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-12-6eaecc75367f81e565aca302ec4c45ef10df66ef",
+          "xpath": "/html[1]/body[1]/div[1]/footer[1]/div[1]/p[1]"
+        }
+      ],
+      "styles": {
+        "background": "rgb(72, 74, 80) none repeat scroll 0% 0% / auto padding-box border-box"
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Hero",
+      "cluster": 1,
+      "source": "Hero",
+      "target": "Hero",
+      "key": "hero1",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-03-4d2155af3050aa09cfbee57f654701e9f8286867",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/section[1]",
+          "section": "section-1"
+        }
+      ]
+    },
+    {
+      "name": "Tabs",
+      "cluster": 2,
+      "source": "Tabs",
+      "target": "Tabs (tabs2)",
+      "key": "tabs2",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-04-addca125a0b884d42fb36715b599fd1b4aa1274b",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[1]"
+        }
+      ]
+    },
+    {
+      "name": "Cards (no images)",
+      "cluster": 3,
+      "source": "Cards",
+      "target": "Cards",
+      "key": "cardsNoImages3",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-06-c549087cda95f17a52cc7da18c7a2176c2af2eca",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[2]/div[2]"
+        }
+      ]
+    },
+    {
+      "name": "Accordion",
+      "cluster": 4,
+      "source": "Accordion",
+      "target": "Accordion (accordion4)",
+      "key": "accordion4",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-07-7e0918996eca585ba4830b1ba392d03e8099aa42",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[3]"
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "cluster": 5,
+      "source": "Cards",
+      "target": "Cards (cards5)",
+      "key": "cards5",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-08-4bed1dc2e3bd5aa3d1b416d453620aa1d948ec88",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[4]"
+        }
+      ]
+    },
+    {
+      "name": "Accordion",
+      "cluster": 6,
+      "source": "Accordion",
+      "target": "Accordion (accordion6)",
+      "key": "accordion6",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-10-170fd9727e11c8f3585ff8c081a0882ea60c7fa8",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[6]/div[1]/div[1]/section[1]",
+          "section": "section-1"
+        }
+      ]
+    },
+    {
+      "name": "Columns",
+      "cluster": 7,
+      "source": "Columns",
+      "target": "Columns",
+      "key": "columns7",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/help/faqs",
+          "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+          "uuid": "8932d0be-04-16866aa8219f9dcf5aea51b466a22f474e07d972",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer[1]/div[1]/nav[1]",
+          "section": "section-3"
+        },
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-11-b558645ba738777ebc11daff269c55c6fbc6b0fa",
+          "xpath": "/html[1]/body[1]/div[1]/footer[1]/div[1]/nav[1]",
+          "section": "section-3"
+        }
+      ]
+    },
+    {
+      "name": "unknown",
+      "cluster": 8,
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/help/faqs",
+          "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+          "uuid": "8932d0be-01-3dad6f17c5ac52449dfbc495c4fa129caa1ae780",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/header[1]",
+          "section": "section-2"
+        },
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-01-3dad6f17c5ac52449dfbc495c4fa129caa1ae780",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/header[1]",
+          "section": "section-2"
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "cluster": 9,
+      "source": "Cards",
+      "target": "Cards (cards9)",
+      "key": "cards9",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/help/faqs",
+          "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+          "uuid": "8932d0be-03-3fad25370b5e8d01aee9d300f6f0a7492e8c39ed",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/div[2]"
+        }
+      ]
+    },
+    {
+      "name": "Tabs",
+      "cluster": 10,
+      "source": "Tabs",
+      "target": "Tabs (tabs10)",
+      "key": "tabs10",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au/credit-card/faqs",
+          "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+          "uuid": "e86d63cd-05-d37a3e5fbac15f8d8cd690e15fece5bf910daf44",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[2]/div[1]"
+        }
+      ]
+    }
+  ],
+  "outliers": [
+    {
+      "url": "https://virginmoney.com.au/help/faqs",
+      "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+      "uuid": "8932d0be-00-ec260e70fd0d109a7b00561467202bbb97cfb965",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]",
+      "section": "section-1"
+    },
+    {
+      "url": "https://virginmoney.com.au/help/faqs",
+      "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+      "uuid": "8932d0be-02-57fc10fbb94114c4f99f56281b102b8e70cca36a",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/div[1]"
+    },
+    {
+      "url": "https://virginmoney.com.au/help/faqs",
+      "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
+      "uuid": "8932d0be-05-576870337abf0aa323a1fe75a33f2b359b589104",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/footer[1]/div[1]/p[1]",
+      "section": "section-3"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card/faqs",
+      "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+      "uuid": "e86d63cd-00-ec260e70fd0d109a7b00561467202bbb97cfb965",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]",
+      "section": "section-1"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card/faqs",
+      "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+      "uuid": "e86d63cd-02-ffec49e1de0e8204a39b453228fe21e918bc4786",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card/faqs",
+      "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+      "uuid": "e86d63cd-09-3893df558d3103dc1eb799f32ed87773640c171b",
+      "xpath": "/html[1]/body[1]/div[1]/div[1]/div[6]/div[1]/div[1]/div[1]",
+      "section": "section-1"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card/faqs",
+      "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
+      "uuid": "e86d63cd-12-6eaecc75367f81e565aca302ec4c45ef10df66ef",
+      "xpath": "/html[1]/body[1]/div[1]/footer[1]/div[1]/p[1]",
+      "section": "section-3"
+    }
+  ],
+  "sections": [
+    {
+      "name": "section-1",
+      "background": "rgb(242, 242, 244) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 5
+    },
+    {
+      "name": "section-2",
+      "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 2
+    },
+    {
+      "name": "section-3",
+      "background": "rgb(72, 74, 80) none repeat scroll 0% 0% / auto padding-box border-box",
+      "count": 4
+    }
+  ]
+}
