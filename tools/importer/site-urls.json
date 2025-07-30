@@ -1,0 +1,35 @@
+{
+  "originUrl": "https://virginmoney.com.au",
+  "urls": [
+    {
+      "url": "https://virginmoney.com.au",
+      "source": "MANUAL",
+      "targetPath": "/",
+      "id": "5b47a4a2af7ec8842e5b0f37f75a8d4093caffc5"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card",
+      "source": "MANUAL",
+      "targetPath": "/credit-card",
+      "id": "c8bcf026fdf90359448f304d08ad001f7d9461a7"
+    },
+    {
+      "url": "https://virginmoney.com.au/credit-card/faqs",
+      "source": "MANUAL",
+      "targetPath": "/credit-card/faqs",
+      "id": "e86d63cd8a4bfb410cacd85053940b813e9523a8"
+    },
+    {
+      "url": "https://virginmoney.com.au/help/faqs",
+      "source": "MANUAL",
+      "targetPath": "/help/faqs",
+      "id": "8932d0be8e75bb65a832173f70a03c994ea36044"
+    }
+  ],
+  "crawlOptions": {
+    "strategy": "manual",
+    "strategiesAttempted": [
+      "MANUAL"
+    ]
+  }
+}
