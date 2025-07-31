@@ -1,36 +1,58 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Extract the .img div containing the background-image and possible inner text
-  const bgDiv = element.querySelector('.img');
-  let imgElem = null;
-  let headingElem = null;
+  // Block header row
+  const headerRow = ['Hero (hero28)'];
 
-  if (bgDiv) {
-    // Get background image URL
-    const style = bgDiv.style && bgDiv.style.backgroundImage;
-    if (style) {
-      const match = style.match(/url\((['"]?)(.*?)\1\)/);
-      if (match && match[2]) {
-        imgElem = document.createElement('img');
-        imgElem.src = match[2];
-        // Use text from <span> as alt if present
-        const span = bgDiv.querySelector('span');
-        imgElem.alt = span ? span.textContent.trim() : '';
-        // If there is visible text, use it as heading
-        if (span && span.textContent.trim()) {
-          headingElem = document.createElement('h1');
-          headingElem.textContent = span.textContent.trim();
-        }
+  // Try to dynamically extract the background image URL and its alt text
+  let imgEl = null;
+  let textContent = '';
+  const intrinsicEl = element.querySelector('.intrinsic-el.img');
+  if (intrinsicEl) {
+    // Extract background image URL
+    let bgUrl = '';
+    if (intrinsicEl.style && intrinsicEl.style.backgroundImage) {
+      const match = intrinsicEl.style.backgroundImage.match(/url\(["']?(.+?)["']?\)/);
+      if (match && match[1]) {
+        bgUrl = match[1];
       }
+    }
+    if (bgUrl) {
+      // Resolve to absolute URL
+      const a = document.createElement('a');
+      a.href = bgUrl;
+      const absUrl = a.href;
+      imgEl = document.createElement('img');
+      imgEl.src = absUrl;
+      // Fetch alt text from child span.vh (if present)
+      const vh = intrinsicEl.querySelector('span.vh');
+      imgEl.alt = vh && vh.textContent ? vh.textContent.trim() : '';
+    }
+    // Extract any visible text content (e.g., span.vh)
+    // Only add text if it's not the same as alt text (to avoid duplication)
+    const vh = intrinsicEl.querySelector('span.vh');
+    if (vh && vh.textContent) {
+      textContent = vh.textContent.trim();
     }
   }
 
-  // Build table rows per Hero (hero28) block doc
-  const headerRow = ['Hero (hero28)'];
-  const imgRow = [imgElem ? imgElem : ''];
-  const contentRow = [headingElem ? headingElem : ''];
+  // Second row: background image (optional)
+  const imageRow = [imgEl];
 
-  const cells = [headerRow, imgRow, contentRow];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(table);
+  // Third row: text content (if any)
+  // Only add a paragraph if there is text content and it is not empty
+  let contentRow;
+  if (textContent) {
+    const p = document.createElement('p');
+    p.textContent = textContent;
+    contentRow = [p];
+  } else {
+    contentRow = [''];
+  }
+
+  // Compose cells array (one table, one header, exactly as in the example)
+  const cells = [headerRow, imageRow, contentRow];
+
+  // Create the block table and replace the original element
+  const block = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(block);
 }

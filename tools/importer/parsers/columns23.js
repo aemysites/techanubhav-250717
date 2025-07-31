@@ -1,43 +1,31 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the two columns represented by .sl-item
-  const sl = element.querySelector('.sl');
-  if (!sl) return;
-  const slList = sl.querySelector('.sl-list');
-  if (!slList) return;
-  const slItems = slList.querySelectorAll(':scope > .sl-item');
-  if (slItems.length < 2) return;
+  // Header row with exact name as required
+  const headerRow = ['Columns (columns23)'];
 
-  // For each .sl-item, collect its section children as a column cell
-  function getCellContent(slItem) {
-    const sections = slItem.querySelectorAll(':scope > section.cm.cm-icon-title');
-    const frag = document.createDocumentFragment();
-    sections.forEach(section => {
-      frag.append(section);
+  // Find the columns wrapper; exit if not present
+  const columnsWrapper = element.querySelector('.sl-list.has-2-items');
+  if (!columnsWrapper) return;
+
+  // Get each .sl-item as a column
+  const columnNodes = Array.from(columnsWrapper.children).filter(n => n.classList.contains('sl-item'));
+  if (columnNodes.length === 0) return;
+
+  // For each .sl-item, wrap all its section children in a div (referencing, not cloning)
+  const columnCells = columnNodes.map(col => {
+    const wrapper = document.createElement('div');
+    Array.from(col.children).forEach(child => {
+      wrapper.appendChild(child);
     });
-    return frag;
-  }
-
-  // Build cells for the columns row
-  const columnsRow = [getCellContent(slItems[0]), getCellContent(slItems[1])];
-
-  // Create the table manually to control colspan for the header
-  const table = document.createElement('table');
-  // Header row with correct colspan
-  const trHeader = document.createElement('tr');
-  const th = document.createElement('th');
-  th.textContent = 'Columns (columns23)';
-  th.colSpan = 2;
-  trHeader.appendChild(th);
-  table.appendChild(trHeader);
-  // Columns row
-  const tr = document.createElement('tr');
-  columnsRow.forEach(cell => {
-    const td = document.createElement('td');
-    td.append(cell);
-    tr.appendChild(td);
+    return wrapper;
   });
-  table.appendChild(tr);
 
+  // Table rows: header + columns
+  const rows = [headerRow, columnCells];
+
+  // Create the block table
+  const table = WebImporter.DOMUtils.createTable(rows, document);
+
+  // Replace original element with the block
   element.replaceWith(table);
 }

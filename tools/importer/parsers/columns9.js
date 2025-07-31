@@ -1,44 +1,38 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Get all product-key-rate-items (columns)
+  // Find the container for the columns
   const productKeyRates = element.querySelector('.product-key-rates');
-  const columnDivs = productKeyRates ? Array.from(productKeyRates.children) : [];
+  const container = productKeyRates || element;
 
-  // For each column, combine the img, key-value-text, and key-top-text in order, preserving structure
-  const columnsRow = columnDivs.map((col) => {
-    const parts = [];
-    const img = col.querySelector('img');
-    if (img) parts.push(img);
-    const title = col.querySelector('.key-value-text');
-    if (title) parts.push(title);
-    const sub = col.querySelector('.key-top-text');
-    if (sub) parts.push(sub);
-    return parts;
+  // Get all direct children .product-key-rate-item as columns
+  const columns = Array.from(container.querySelectorAll('.product-key-rate-item'));
+
+  // For each column, gather its contents as a fragment
+  const cellElements = columns.map((col) => {
+    const frag = document.createDocumentFragment();
+    Array.from(col.childNodes).forEach((node) => {
+      frag.appendChild(node);
+    });
+    return frag;
   });
 
-  // Create the table manually so we can specify colspan on the <th>
+  // Custom table creation to allow correct header spanning
   const table = document.createElement('table');
-
-  // Header row: one <th> with colspan = number of columns
-  const trHeader = document.createElement('tr');
+  // Header row: one th with colspan = number of columns
+  const headerTr = document.createElement('tr');
   const th = document.createElement('th');
   th.textContent = 'Columns (columns9)';
-  th.setAttribute('colspan', Math.max(1, columnsRow.length));
-  trHeader.appendChild(th);
-  table.appendChild(trHeader);
-
-  // Columns/content row
-  const trCols = document.createElement('tr');
-  columnsRow.forEach(cellContent => {
+  th.colSpan = Math.max(1, cellElements.length);
+  headerTr.appendChild(th);
+  table.appendChild(headerTr);
+  // Content row
+  const contentTr = document.createElement('tr');
+  cellElements.forEach(cell => {
     const td = document.createElement('td');
-    if (Array.isArray(cellContent)) {
-      cellContent.forEach(el => td.appendChild(el));
-    } else if (cellContent) {
-      td.appendChild(cellContent);
-    }
-    trCols.appendChild(td);
+    td.appendChild(cell);
+    contentTr.appendChild(td);
   });
-  table.appendChild(trCols);
+  table.appendChild(contentTr);
 
   element.replaceWith(table);
 }

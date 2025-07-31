@@ -1,51 +1,59 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Build table array per block spec
-  const rows = [];
-  rows.push(['Cards (cards6)']); // Header row exactly as specified
-
-  // Find all .sl-list (card grids)
-  const slLists = element.querySelectorAll('.sl-list');
-  slLists.forEach((slList) => {
-    // Each .sl-item is a card (skip if empty)
-    slList.querySelectorAll('.sl-item').forEach((slItem) => {
-      const card = slItem.querySelector('section.cm-content-tile, section.cm.cm-content-tile');
-      if (!card) return;
-      const cardRoot = card.querySelector('div');
-      if (!cardRoot) return;
-      // IMAGE CELL
-      let imgEl = null;
-      const img = cardRoot.querySelector('.image img');
-      if (img) {
-        imgEl = img;
+  // Collect all cards from all column containers
+  const cards = [];
+  const cardContainers = element.querySelectorAll('.column-container');
+  cardContainers.forEach((container) => {
+    const slItems = container.querySelectorAll('.sl-item');
+    slItems.forEach((item) => {
+      // Only process sl-items that contain a .cm-content-tile
+      const contentTile = item.querySelector('.cm-content-tile');
+      if (!contentTile) return;
+      const tileInner = contentTile.querySelector(':scope > div');
+      if (!tileInner) return;
+      // Image cell
+      const imgEl = tileInner.querySelector('.image img');
+      // Text cell: collect header, description, and CTA (all together in a div)
+      const contentDiv = tileInner.querySelector('.content');
+      const textCell = document.createElement('div');
+      if (contentDiv) {
+        // Title
+        const header = contentDiv.querySelector('.header');
+        if (header) textCell.appendChild(header);
+        // Description: first <p> that isn't empty, doesn't have class 'subheading', and doesn't contain an <a>
+        const desc = Array.from(contentDiv.querySelectorAll('p')).find(
+          (p) =>
+            !p.classList.contains('subheading') &&
+            !p.querySelector('a') &&
+            p.textContent.trim().length > 0
+        );
+        if (desc) textCell.appendChild(desc);
+        // CTA: first <p> containing an <a>
+        const cta = Array.from(contentDiv.querySelectorAll('p')).find(
+          (p) => p.querySelector('a')
+        );
+        if (cta) textCell.appendChild(cta);
       }
-      // TEXT CELL
-      const content = cardRoot.querySelector('.content');
-      const textNodes = [];
-      if (content) {
-        // Title (h2.header)
-        const h2 = content.querySelector('h2.header, h2');
-        if (h2 && h2.textContent.trim()) textNodes.push(h2);
-        // Description: first <p> that is not .subheading and does not contain <a>, with text
-        const ps = Array.from(content.querySelectorAll('p'));
-        const descP = ps.find(p => !p.classList.contains('subheading') && !p.querySelector('a') && p.textContent.trim());
-        if (descP) {
-          textNodes.push(descP);
-        }
-        // CTA: first <p> with <a>
-        const ctaP = ps.find(p => p.querySelector('a'));
-        if (ctaP) {
-          textNodes.push(ctaP);
-        }
+      // If both cells are empty, skip
+      if (!imgEl && textCell.childNodes.length === 0) return;
+      // If there's only one child in textCell, just reference that node (to avoid unnecessary <div>)
+      let textFinal;
+      if (textCell.childNodes.length === 1) {
+        textFinal = textCell.firstChild;
+      } else if (textCell.childNodes.length > 1) {
+        textFinal = textCell;
+      } else {
+        textFinal = '';
       }
-      // Only add rows with an image and at least one text element
-      if (imgEl && textNodes.length > 0) {
-        rows.push([imgEl, textNodes]);
-      }
+      cards.push([imgEl || '', textFinal]);
     });
   });
 
-  // Create and replace
+  // Block table: header, then each card row
+  const rows = [
+    ['Cards (cards6)'],
+    ...cards
+  ];
   const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

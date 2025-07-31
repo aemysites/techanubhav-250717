@@ -1,65 +1,55 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header matches EXACTLY
-  const headerRow = ['Cards (cards14)'];
-  const cells = [headerRow];
+  // Header row as per block requirements
+  const cells = [['Cards (cards14)']];
 
-  // Find all card sections
-  const cardSections = element.querySelectorAll('section.cm-content-tile');
+  // Get all cards: section.cm.cm-content-tile
+  const cardSections = Array.from(element.querySelectorAll('section.cm.cm-content-tile'));
   cardSections.forEach((section) => {
-    // --- IMAGE COLUMN ---
-    let img = null;
-    const imgEl = section.querySelector('.image img');
-    if (imgEl) {
-      img = imgEl;
-    }
-    // --- TEXT COLUMN ---
-    // Use the actual existing elements for semantic content
+    // FIRST CELL: image/icon (mandatory)
+    // Use the <img> element directly
+    let imgEl = section.querySelector('div.image img');
+    
+    // SECOND CELL: text content (title, description, CTA)
     const contentDiv = section.querySelector('.content');
-    const contentFrag = document.createElement('div');
-
-    // Heading (b inside h3, or h3 itself)
-    const h3 = contentDiv.querySelector('h3');
-    if (h3) {
-      let heading = null;
-      const b = h3.querySelector('b');
-      if (b) {
-        heading = document.createElement('strong');
-        heading.textContent = b.textContent;
-      } else {
-        heading = document.createElement('strong');
-        heading.textContent = h3.textContent;
+    const textCellContent = [];
+    if (contentDiv) {
+      // Title: h3.header (may contain <b>, preserve as-is)
+      const heading = contentDiv.querySelector('h3.header');
+      if (heading && heading.textContent.trim().length > 0) {
+        textCellContent.push(heading);
       }
-      contentFrag.appendChild(heading);
-    }
-    // All <p> that are not .subheading (ignore those)
-    const ps = Array.from(contentDiv.querySelectorAll('p')).filter(p => !p.classList.contains('subheading'));
-    // Remove empty paragraphs
-    const filteredPs = ps.filter(p => p.textContent.trim().length > 0);
-
-    // If the last has an <a>, treat as CTA, else no CTA
-    let ctaP = null;
-    if (filteredPs.length && filteredPs[filteredPs.length - 1].querySelector('a')) {
-      ctaP = filteredPs.pop();
-    }
-    // Add description <p>s
-    filteredPs.forEach(p => {
-      contentFrag.appendChild(p);
-    });
-    // CTA
-    if (ctaP) {
-      // Only append the <a>, not the paragraph
-      const ctaA = ctaP.querySelector('a');
-      if (ctaA) {
-        const p = document.createElement('p');
-        p.appendChild(ctaA);
-        contentFrag.appendChild(p);
+      // Description: first <p> after h3.header which is not empty, not just a link, and not .subheading
+      let foundDescription = false;
+      const ps = Array.from(contentDiv.querySelectorAll('p'));
+      for (const p of ps) {
+        if (p.classList.contains('subheading') || !p.textContent.trim()) continue;
+        if (p.querySelector('a') && p.textContent.trim() === p.querySelector('a').textContent.trim()) continue;
+        // p is a description
+        textCellContent.push(p);
+        foundDescription = true;
+        break;
+      }
+      // CTA: any <a> in .content which is not part of heading or description, typically in its own <p>
+      // We'll add the first <a> found in a <p> that is not a subheading and not empty
+      const ctaP = ps.find(p => {
+        return (
+          !p.classList.contains('subheading') &&
+          p.querySelector('a') &&
+          p.textContent.trim() === p.querySelector('a').textContent.trim()
+        );
+      });
+      if (ctaP) {
+        textCellContent.push(ctaP);
       }
     }
-    cells.push([img, contentFrag]);
+    // Add card row to cells array (image, text)
+    cells.push([
+      imgEl || '',
+      textCellContent
+    ]);
   });
-
-  // Build and replace
+  // Create the block table and replace original element
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

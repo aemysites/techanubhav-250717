@@ -1,59 +1,59 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  const headerRow = ['Cards (cards13)'];
-  const cells = [headerRow];
+  // 1. Header row
+  const cells = [['Cards (cards13)']];
 
-  const list = element.querySelector('.sl-list');
-  if (!list) return;
-  const items = list.querySelectorAll(':scope > .sl-item');
+  // 2. Find all card items (div.sl-item)
+  const cardItems = element.querySelectorAll('.sl-item');
+  cardItems.forEach(cardItem => {
+    // Find the first 'section.cm-content-tile' in this card item
+    const section = cardItem.querySelector('section.cm-content-tile');
+    if (!section) return;
 
-  items.forEach((item) => {
-    let section = item.querySelector('section.cm-content-tile');
-    if (!section) section = item;
+    // Inside section: there's a single child <div>
+    const cardDiv = section.querySelector(':scope > div');
+    if (!cardDiv) return;
 
-    // --- Image/Icon cell ---
-    let imageCell = '';
-    const imageWrapper = section.querySelector('.image');
-    if (imageWrapper) {
-      const img = imageWrapper.querySelector('img');
-      if (img) imageCell = img;
+    // First column: image/icon in .image (mandatory)
+    const imageWrap = cardDiv.querySelector('.image');
+    let imageEl = '';
+    if (imageWrap) {
+      // Use the <img> element directly
+      const img = imageWrap.querySelector('img');
+      if (img) imageEl = img;
     }
 
-    // --- Content cell ---
-    const contentElements = [];
-    const contentDiv = section.querySelector('.content');
-    if (contentDiv) {
-      // Heading (use whichever heading tag is present)
-      const heading = contentDiv.querySelector('h1, h2, h3, h4, h5, h6');
-      if (heading) {
-        contentElements.push(heading);
-      }
-      // Subheading/description: specifically include .subheading if non-empty
-      const subheading = contentDiv.querySelector('p.subheading');
-      if (subheading && subheading.textContent.trim()) {
-        contentElements.push(subheading);
-      }
-      // Any other <p> that is not subheading and not a CTA
-      const ps = Array.from(contentDiv.querySelectorAll('p'));
-      ps.forEach((p) => {
-        if (
-          p !== subheading &&
-          !p.querySelector('a') &&
-          p.textContent.trim()
-        ) {
-          contentElements.push(p);
+    // Second column: text content from .content (mandatory)
+    const contentWrap = cardDiv.querySelector('.content');
+    let contentElements = [];
+    if (contentWrap) {
+      // Title: h1 or h2 or h3 (keep heading level as is)
+      const heading = contentWrap.querySelector('h1, h2, h3');
+      if (heading) contentElements.push(heading);
+      // Description: add all <p> elements EXCEPT .subheading and those that contain only a link
+      const descPs = Array.from(contentWrap.querySelectorAll('p')).filter(p => {
+        if (p.classList.contains('subheading')) return false;
+        // Exclude <p> if it contains only a single <a>
+        if (p.childElementCount === 1 && p.querySelector('a')) {
+          // But if it also contains other text, keep it
+          if (p.textContent.replace(p.querySelector('a').textContent, '').trim() === '') return false;
         }
+        return true;
       });
-      // CTA (p with link)
-      ps.forEach((p) => {
-        if (p.querySelector('a')) {
-          contentElements.push(p);
-        }
-      });
+      contentElements.push(...descPs);
+      // CTA: first <a> inside a <p> - add the entire <p> if present
+      const ctaP = Array.from(contentWrap.querySelectorAll('p')).find(p => p.querySelector('a'));
+      if (ctaP && !contentElements.includes(ctaP)) contentElements.push(ctaP);
     }
-    cells.push([imageCell, contentElements]);
+
+    // If there are no contentElements, put an empty string
+    const contentCell = contentElements.length ? (contentElements.length === 1 ? contentElements[0] : contentElements) : '';
+
+    // 3. Push row: [imageEl or '', contentCell]
+    cells.push([imageEl || '', contentCell]);
   });
 
+  // 4. Build and replace
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

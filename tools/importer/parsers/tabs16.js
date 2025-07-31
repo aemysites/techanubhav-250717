@@ -1,22 +1,27 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row: single cell, exactly as the example
-  const headerRow = ['Tabs (tabs16)'];
+  // Get all .filtered-content blocks (one per tab)
+  const tabs = Array.from(element.querySelectorAll('.filtered-content'));
 
-  // Gather all tab sections
-  const tabElements = Array.from(element.querySelectorAll('.filtered-content'));
-
-  // Build rows: each as [Tab Label, Tab Content]
-  const rows = tabElements.map(tabEl => {
-    const tabLabel = tabEl.getAttribute('data-title') || '';
-    let tabContent = tabEl.querySelector('.cm.cm-rich-text.module__content.l-full-width');
-    if (!tabContent) tabContent = tabEl.querySelector('.cm-rich-text, .module__content, .cm');
-    if (!tabContent) tabContent = tabEl;
-    return [tabLabel, tabContent];
+  // For each tab, extract the label and the existing content element
+  const rows = tabs.map(tab => {
+    // Label from data-title (fallback to empty string if missing)
+    const label = tab.getAttribute('data-title') || '';
+    // Content: reference existing inner content element (usually the only child div)
+    let content = tab.querySelector(':scope > div');
+    if (!content) {
+      // Fallback: use the tab element itself if content missing
+      content = tab;
+    }
+    return [label, content];
   });
 
-  // Compose the table: header as a single cell row, subsequent rows two columns (label, content)
+  // Header row must have exactly one column, per requirements
+  const headerRow = ['Tabs (tabs16)'];
+
+  // Compose table: header as single column row, then each row is [label, content]
   const cells = [headerRow, ...rows];
+
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

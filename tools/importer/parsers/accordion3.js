@@ -1,68 +1,60 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Accordion (accordion3) block
-  // Header row
-  const headerRow = ['Accordion (accordion3)'];
+  // Find the main accordion list
+  const ul = element.querySelector('ul.accordion-list');
+  if (!ul) return;
+  // Find the single accordion item <li>
+  const li = ul.querySelector(':scope > li');
+  if (!li) return;
 
-  // Find the accordion main li (should be only one)
-  const li = element.querySelector('ul.accordion-list > li');
-  let titleCell = '';
-  let contentCell = '';
-  if (li) {
-    // Title cell: get the .js-ec-link anchor
-    const titleAnchor = li.querySelector('a.js-ec-link');
-    if (titleAnchor) {
-      // Remove the visual <div class="ec"> from the anchor
-      const tempAnchor = titleAnchor.cloneNode(true);
-      const ecDiv = tempAnchor.querySelector('.ec');
-      if (ecDiv) ecDiv.remove();
-      // If the anchor contains HTML elements (like <strong>, <span>, etc.), use its children; else use text
-      if (tempAnchor.children.length > 0) {
-        // Remove all empty <div> or elements with no useful content
-        Array.from(tempAnchor.children).forEach(child => {
-          if (child.tagName === 'DIV' && !child.textContent.trim()) child.remove();
-        });
-        // If still children remaining, use them as an array
-        if (tempAnchor.childNodes.length > 0) {
-          titleCell = Array.from(tempAnchor.childNodes);
-        } else {
-          titleCell = tempAnchor.textContent.trim();
-        }
-      } else {
-        titleCell = tempAnchor.textContent.trim();
-      }
+  // Extract the accordion panel's title (from <a>, excluding .ec icon)
+  const titleAnchor = li.querySelector('a.accordion-item');
+  if (!titleAnchor) return;
+  let titleText = '';
+  titleAnchor.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      titleText += node.textContent;
+    } else if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      (!node.classList || !node.classList.contains('ec'))
+    ) {
+      titleText += node.textContent;
     }
-    // Content cell: find the expandcollapse-content div
-    const contentDiv = li.querySelector('div.expandcollapse-content');
-    if (contentDiv) {
-      // Find the <ol> inside contentDiv
-      const ol = contentDiv.querySelector('ol');
-      if (ol) {
-        // Since <ol> has multiple .tcs-wrapper, each with a <li>; we want to collect all <li> in order, with preserved markup
-        const lis = [];
-        ol.querySelectorAll(':scope > div.tcs-wrapper').forEach(wrapper => {
-          const liItem = wrapper.querySelector('li');
-          if (liItem) lis.push(liItem);
-        });
-        // Create a new <ol> in this document and append all <li>
-        if (lis.length > 0) {
-          const newOl = document.createElement('ol');
-          lis.forEach(liItem => newOl.appendChild(liItem));
-          contentCell = newOl;
-        } else {
-          contentCell = '';
-        }
-      } else {
-        contentCell = contentDiv;
-      }
-    } else {
-      contentCell = '';
+  });
+  titleText = titleText.trim();
+
+  // Find the expanded content container for the accordion panel
+  const contentDiv = li.querySelector('div.expandcollapse-content');
+  if (!contentDiv) return;
+
+  // Collect all <li> elements, either inside .tcs-wrapper or directly under <ol>
+  const contentLis = [];
+  // Prefer .tcs-wrapper (each contains a <li>)
+  const wrappers = contentDiv.querySelectorAll('.tcs-wrapper');
+  if (wrappers.length > 0) {
+    wrappers.forEach(wrapper => {
+      const cli = wrapper.querySelector('li');
+      if (cli) contentLis.push(cli);
+    });
+  } else {
+    // Fallback: just in case, add any <li> directly under <ol>
+    const ol = contentDiv.querySelector('ol');
+    if (ol) {
+      ol.querySelectorAll(':scope > li').forEach(cli => contentLis.push(cli));
     }
   }
-  const rows = [
-    headerRow,
-    [titleCell, contentCell],
+  // Prepare a fragment with all <li> in order
+  const contentFragment = document.createDocumentFragment();
+  contentLis.forEach(liEl => {
+    contentFragment.appendChild(liEl);
+  });
+
+  // Compose the block table as per the requirements
+  const cells = [
+    ['Accordion (accordion3)'],
+    [titleText, contentFragment]
   ];
-  const table = WebImporter.DOMUtils.createTable(rows, document);
-  element.replaceWith(table);
+
+  const block = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(block);
 }
