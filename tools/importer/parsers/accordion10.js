@@ -1,47 +1,55 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row: block name EXACTLY as required
-  const headerRow = ['Accordion (accordion10)'];
-  const rows = [headerRow];
+  // Table header for Accordion block
+  const cells = [['Accordion']];
 
-  // Get all accordion items
-  const accordionItems = element.querySelectorAll('ul.accordion-list > li');
+  // Find accordion items: <ul class="accordion-list"><li> ... </li></ul>
+  const accordionList = element.querySelector('.accordion-list');
+  if (!accordionList) return;
+  // Each top-level <li> in the accordion-list is an accordion item
+  const accordionItems = accordionList.querySelectorAll(':scope > li');
 
-  accordionItems.forEach((li) => {
-    // Title cell: get the anchor text without the inner icon
-    const a = li.querySelector('a.accordion-item');
-    // Remove trailing .ec icon from the title for display
-    let title = '';
-    if (a) {
-      // Get all child nodes except the .ec div
-      const nodes = Array.from(a.childNodes).filter(n => !(n.nodeType === 1 && n.classList.contains('ec')));
-      // Join all text nodes and inline nodes except the icon
-      title = nodes.map(n => n.textContent).join('').trim();
-    }
-    // Use a div to preserve HTML formatting if needed (though title is usually plain text)
-    const titleElement = document.createElement('div');
-    titleElement.textContent = title;
-
-    // Content cell: reference all direct children of the expandcollapse-content
-    const contentDiv = li.querySelector('div.expandcollapse-content');
-    // Instead of cloning, reference the actual element's children (to preserve formatting, lists, etc)
-    let contentCell;
-    if (contentDiv && contentDiv.children.length > 0) {
-      const contentParts = Array.from(contentDiv.children); // usually one .cm-rich-text
-      // If there's only one child, reference it directly; if more, use array
-      contentCell = contentParts.length === 1 ? contentParts[0] : contentParts;
-    } else if (contentDiv) {
-      // Fallback: if no child elements, but there is text, preserve it
-      const fallbackDiv = document.createElement('div');
-      fallbackDiv.textContent = contentDiv.textContent.trim();
-      contentCell = fallbackDiv;
+  accordionItems.forEach((item) => {
+    // Title is <a> (with label and possibly icon/chevron as <div class="ec">)
+    const title = item.querySelector('a');
+    // Content is the <div> next to the <a>
+    let content = null;
+    const aEl = title;
+    let next = aEl ? aEl.nextElementSibling : null;
+    if (next && next.tagName === 'DIV') {
+      // The content is in a <div>, typically with an <ol> of <div class="tcs-wrapper"><li>...</li></div>
+      // We'll assemble a content block from the <li>s inside each .tcs-wrapper
+      const ol = next.querySelector('ol');
+      if (ol) {
+        // Create a container for the content
+        content = document.createElement('div');
+        // Each <div.tcs-wrapper> contains a <li>
+        const wrappers = ol.querySelectorAll(':scope > div.tcs-wrapper');
+        wrappers.forEach((wrapper, idx) => {
+          const li = wrapper.querySelector('li');
+          if (li) {
+            // If li has a single p, just use the <p>, else keep whole <li>
+            if (li.childElementCount === 1 && li.firstElementChild.tagName === 'P') {
+              content.appendChild(li.firstElementChild);
+            } else {
+              content.appendChild(li);
+            }
+          }
+        });
+      } else {
+        // If no <ol>, use the entire <div> content
+        content = document.createElement('div');
+        content.append(...next.childNodes);
+      }
     } else {
-      // Fallback: blank cell
-      contentCell = '';
+      // Fallback: No content div, use empty div
+      content = document.createElement('div');
     }
-    rows.push([titleElement, contentCell]);
+    // Use the existing title <a> element, and the constructed content
+    cells.push([title, content]);
   });
 
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  // Create and replace block
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }
