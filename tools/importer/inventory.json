@@ -36,6 +36,22 @@
   ],
   "blocks": [
     {
+      "name": "header",
+      "cluster": 1,
+      "source": "Header",
+      "target": "Header",
+      "key": "header1",
+      "instances": [
+        {
+          "url": "https://virginmoney.com.au",
+          "urlHash": "5b47a4a2af7ec8842e5b0f37f75a8d4093caffc5",
+          "uuid": "5b47a4a2-00-3dad6f17c5ac52449dfbc495c4fa129caa1ae780",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/header[1]",
+          "section": "section-1"
+        }
+      ]
+    },
+    {
       "name": "Hero",
       "cluster": 2,
       "source": "Hero",
