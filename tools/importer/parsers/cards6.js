@@ -1,38 +1,45 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Helper: create header row as per requirements
+  // Header row
   const headerRow = ['Cards (cards6)'];
-  const cells = [headerRow];
+  const rows = [headerRow];
 
-  // All cards are <section class="cm cm-content-tile">
-  const cardSections = element.querySelectorAll('section.cm.cm-content-tile');
+  // Get all card columns (each has two cards)
+  const columns = element.querySelectorAll(':scope > div > div.sl-list > div.sl-item');
+  columns.forEach(col => {
+    const sections = col.querySelectorAll('section.cm-content-tile');
+    sections.forEach(section => {
+      // Get image (mandatory)
+      const img = section.querySelector('.image img');
+      // If no image, skip (per block guidelines, image is mandatory)
+      if (!img) return;
+      // Gather text content
+      const content = section.querySelector('.content');
+      const textCell = document.createElement('div');
 
-  cardSections.forEach((section) => {
-    // --- COLUMN 1: Image/Icon ---
-    let img = section.querySelector('.image img');
-    let imgCell = img ? img : '';
+      // Title (h3, optional)
+      const h3 = content.querySelector('h3');
+      if (h3) textCell.appendChild(h3);
+      // Description(s): all non-empty <p> that don't contain links
+      const ps = Array.from(content.querySelectorAll('p'));
+      ps.forEach((p, idx) => {
+        // skip empty ps
+        if (!p.textContent.trim()) return;
+        // if contains a link, treat as CTA
+        if (p.querySelector('a')) return;
+        textCell.appendChild(p);
+      });
+      // CTA (the <p> with <a> inside)
+      const cta = ps.find(p => p.querySelector('a'));
+      if (cta) textCell.appendChild(cta);
 
-    // --- COLUMN 2: Text content (heading, description, CTA) ---
-    const content = section.querySelector('.content');
-    let textParts = [];
-    if (content) {
-      // Use existing heading (h3.header, typically has <b> inside)
-      let heading = content.querySelector('h3.header');
-      if (heading && heading.textContent.trim() !== '') {
-        textParts.push(heading);
-      }
-      // Get all <p> that are NOT .subheading and not empty
-      const ps = Array.from(content.querySelectorAll('p')).filter(
-        p => !p.classList.contains('subheading') && p.textContent.trim() !== ''
-      );
-      ps.forEach(p => textParts.push(p));
-    }
-    // Fallback: cell must NOT be empty
-    let textCell = textParts.length ? textParts : '';
-    cells.push([imgCell, textCell]);
+      rows.push([
+        img,
+        textCell
+      ]);
+    });
   });
 
-  // Create table and replace original element
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

@@ -1,54 +1,48 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // 1. Extract the background image as an <img>
-  let imgEl = null;
-  let altText = '';
-  // Try to find the div with background-image
-  const bgDiv = element.querySelector('.intrinsic-el.img');
-  if (bgDiv && bgDiv.style && bgDiv.style.backgroundImage) {
-    const bgStyle = bgDiv.style.backgroundImage;
-    const urlMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
-    if (urlMatch && urlMatch[1]) {
-      // Convert relative URL to absolute
-      const a = document.createElement('a');
-      a.href = urlMatch[1];
-      const absUrl = a.href;
-      imgEl = document.createElement('img');
-      imgEl.src = absUrl;
-      // Get alt text if present (from .vh span)
-      const vhSpan = bgDiv.querySelector('.vh') || element.querySelector('.vh');
-      if (vhSpan) {
-        altText = vhSpan.textContent.trim();
-        imgEl.alt = altText;
+  // Extract the background image URL
+  const intrinsicEl = element.querySelector('.intrinsic-el');
+  let bgUrl = '';
+  if (intrinsicEl && intrinsicEl.style && intrinsicEl.style.backgroundImage) {
+    const match = intrinsicEl.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);
+    if (match && match[1]) {
+      bgUrl = match[1];
+    }
+  }
+
+  // Find all visually hidden spans for text content
+  let textContent = '';
+  if (intrinsicEl) {
+    const vhSpans = intrinsicEl.querySelectorAll('span, .vh');
+    for (const span of vhSpans) {
+      if (span.textContent && span.textContent.trim()) {
+        textContent = span.textContent.trim();
+        break;
       }
     }
   }
-  // 2. Extract all visible text content (except from script/style, and except what's used as image alt)
-  let textContent = '';
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
-    acceptNode: (node) => {
-      const val = node.textContent.trim();
-      if (!val) return NodeFilter.FILTER_REJECT;
-      // Exclude script/style tags
-      const tag = node.parentElement && node.parentElement.tagName;
-      if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
-      // Exclude text used as alt text
-      if (altText && val === altText) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    }
-  });
-  let node, textNodes = [];
-  while ((node = walker.nextNode())) {
-    textNodes.push(node.textContent.trim());
-  }
-  // Combine all remaining text, preserving newlines if multiple blocks
-  textContent = textNodes.join('\n').trim();
 
-  // 3. Compose the table in the structure: header, image, content
+  // Create the image element if there's a background image
+  let imgEl = null;
+  if (bgUrl) {
+    imgEl = document.createElement('img');
+    imgEl.src = bgUrl;
+    imgEl.alt = textContent;
+  }
+
+  // Put any text content in a heading if present
+  let textEl = null;
+  if (textContent) {
+    textEl = document.createElement('h1');
+    textEl.textContent = textContent;
+  }
+
+  // Compose the table block as per the example
+  // Header row is block name; second row is image; third row is text
   const cells = [
     ['Hero (hero2)'],
     [imgEl],
-    [textContent ? textContent : ''],
+    [textEl]
   ];
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);

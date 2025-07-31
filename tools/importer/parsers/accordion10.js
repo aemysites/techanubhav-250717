@@ -1,93 +1,42 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Step 1: Prepare the rows array; header first
-  const cells = [['Accordion']];
-
-  // Step 2: Locate the main <ul class="accordion-list">
+  // Table: header row, then each accordion row is [Title, Content]
+  const rows = [['Accordion']];
+  // Find all accordion items
   const accordionList = element.querySelector('ul.accordion-list');
-  if (!accordionList) {
-    // No accordion list found, do nothing
-    return;
-  }
+  if (!accordionList) return;
+  const liItems = accordionList.querySelectorAll(':scope > li');
 
-  // Step 3: Each accordion item is a <li> directly under accordion-list
-  // In this HTML, there is one <li> which contains all actual toggles: title <a> and content <div>
-  const topLi = accordionList.querySelector(':scope > li');
-  if (!topLi) {
-    return;
-  }
-
-  // Title is the <a>
-  const titleLink = topLi.querySelector(':scope > a');
-  let titleCell = '';
-  if (titleLink) {
-    // Only the text (strip any children like icons)
-    // Get all child text nodes (exclude elements)
-    let titleText = Array.from(titleLink.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').trim();
-    titleCell = titleText;
-  }
-
-  // Content area is <div expandcollapse-content>
-  const contentDiv = topLi.querySelector(':scope > div.expandcollapse-content');
-  let contentCell = '';
-  if (contentDiv) {
-    // There is an <ol> with multiple <div.tcs-wrapper>, each of which contains <li>
-    const ol = contentDiv.querySelector('ol');
-    if (ol) {
-      const wrappers = ol.querySelectorAll(':scope > div.tcs-wrapper');
-      // For each wrapper, gather the relevant <li> children
-      const rows = [];
-      wrappers.forEach(wrapper => {
-        const li = wrapper.querySelector('li');
-        if (!li) return;
-        // Gather <p> and any block children from the <li>
-        const liContent = [];
-        Array.from(li.childNodes).forEach(node => {
-          // Only append non-empty nodes
-          if (node.nodeType === 1) {
-            // elements
-            if (node.textContent.trim() || node.querySelector('a, b, u, i, em, strong')) {
-              liContent.push(node);
-            }
-          } else if (node.nodeType === 3 && node.textContent.trim()) {
-            // text nodes
-            const span = document.createElement('span');
-            span.textContent = node.textContent.trim();
-            liContent.push(span);
-          }
-        });
-        if (liContent.length) {
-          rows.push(liContent.length === 1 ? liContent[0] : liContent);
-        }
-      });
-      // Place all li contents in a fragment
-      if (rows.length) {
-        const frag = document.createDocumentFragment();
-        rows.forEach((block, idx) => {
-          if (Array.isArray(block)) {
-            block.forEach(el => frag.appendChild(el));
-          } else {
-            frag.appendChild(block);
-          }
-          // Optionally, add <br> between blocks for clarity (matches original HTML breaks)
-          if (idx !== rows.length - 1) {
-            frag.appendChild(document.createElement('br'));
-          }
-        });
-        contentCell = frag.childNodes.length === 1 ? frag.firstChild : Array.from(frag.childNodes);
+  liItems.forEach(li => {
+    // Title: the <a> with class accordion-item, but reference existing node, not clone
+    let titleCell = '';
+    const titleLink = li.querySelector('a.accordion-item');
+    if (titleLink) {
+      // Remove .ec visual sub-element from the title, but keep the anchor
+      const ecDiv = titleLink.querySelector('div.ec');
+      if (ecDiv) ecDiv.remove();
+      titleCell = titleLink;
+    }
+    // Content: the corresponding <div class="expandcollapse-content"> (direct child of li). Reference the <ol> inside, or all children if not present.
+    let contentCell = '';
+    const contentDiv = li.querySelector('div.expandcollapse-content');
+    if (contentDiv) {
+      // Remove potential role, tabindex, inline style attributes
+      contentDiv.removeAttribute('role');
+      contentDiv.removeAttribute('tabindex');
+      contentDiv.removeAttribute('style');
+      // Reference the <ol> directly if present, else the div itself
+      const ol = contentDiv.querySelector('ol');
+      if (ol) {
+        contentCell = ol;
+      } else {
+        contentCell = contentDiv;
       }
     }
-  }
+    rows.push([titleCell, contentCell]);
+  });
 
-  // Add the row if there is a title or content
-  if (titleCell || contentCell) {
-    cells.push([
-      titleCell,
-      contentCell
-    ]);
-  }
-
-  // Build and replace
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  // Create the table and replace the original element
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

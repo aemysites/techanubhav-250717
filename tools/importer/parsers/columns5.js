@@ -1,26 +1,29 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Get the list container for columns
+  // Ensure we are only running on the expected container
+  const headerRow = ['Columns (columns5)'];
+
+  // Find columns: sl-list > sl-item (two items: left=image, right=rich text)
   const slList = element.querySelector('.sl-list');
   if (!slList) return;
-  const items = slList.querySelectorAll(':scope > .sl-item');
-  if (items.length !== 2) return;
+  const slItems = slList.querySelectorAll(':scope > .sl-item');
+  if (slItems.length < 2) return;
 
-  // Left column: image section (reference the entire <section> for structure resilience)
-  let leftCol = items[0].querySelector('section.cm-image');
-  // Right column: text content (reference the entire .cm-rich-text)
-  let rightCol = items[1].querySelector('.cm-rich-text');
+  // First column: image (grab the full section.cm-image or its figure)
+  let leftContent = slItems[0].querySelector('section.cm-image');
+  if (!leftContent) leftContent = slItems[0];
 
-  // Fallbacks for robustness
-  if (!leftCol) leftCol = items[0];
-  if (!rightCol) rightCol = items[1];
+  // Second column: rich text content (grab the full .cm-rich-text)
+  let rightContent = slItems[1].querySelector('.cm-rich-text');
+  if (!rightContent) rightContent = slItems[1];
 
-  // Build the table as per specs: header in first row, two columns in second row
-  const cells = [
-    ['Columns (columns5)'],
-    [leftCol, rightCol]
+  // Build table rows
+  const rows = [
+    headerRow,
+    [leftContent, rightContent]
   ];
 
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  // Create the block table and replace the original element
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }
