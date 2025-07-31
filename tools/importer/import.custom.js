@@ -53,8 +53,8 @@ function svgToPngTransformer(hookName, element, payload) {
 
 function customCleanupTransformer(hookName, element, payload) {
   if (hookName === 'beforeTransform') {
-    payload.document.querySelectorAll('.global-search, .global-login, #top, #nav').forEach((el) => { el.remove(); });
-  }
+    payload.document.querySelectorAll('.global-search, .global-login, #top, #nav').forEach((el) => { el.innerHTML = ''; });
+   }
 }
 
 export const customTransformers = {
