@@ -1,34 +1,44 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
+  // Header row as in the example
   const headerRow = ['Cards (cards21)'];
-  const cells = [headerRow];
-  // Find all card items: .sl-list > .sl-item
-  const cardItems = element.querySelectorAll('.sl-list > .sl-item');
-  cardItems.forEach((item) => {
-    // Find the main link
+
+  // Gather card items
+  const items = element.querySelectorAll('.sl-list > .sl-item');
+  const rows = [];
+
+  items.forEach((item) => {
+    // Each item: section > a > div.image > img and div.content > h2
+    const img = item.querySelector('img');
+    const h2 = item.querySelector('h2.header');
     const link = item.querySelector('a.cm-image-block-link');
-    // Find image element to preserve reference
-    const img = link ? link.querySelector('img') : null;
-    // Find the card title (should be in h2 or fallback to text)
-    let textCell = '';
-    if (link) {
-      const h2 = link.querySelector('h2');
-      if (h2) {
-        // Use <strong> to match example formatting
-        const strong = document.createElement('strong');
-        strong.textContent = h2.textContent.trim();
-        textCell = strong;
-      } else {
-        // fallback: use link text
-        textCell = link.textContent.trim();
-      }
+
+    // First cell: image element (referenced directly)
+    const imgCell = img;
+
+    // Second cell: title as a link if present, otherwise text only. No description present in this HTML.
+    let textCell;
+    if (h2 && link) {
+      // Make <a> with href and textContent, reference h2 for text
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.textContent = h2.textContent;
+      textCell = a;
+    } else if (h2) {
+      // Only heading, no link
+      textCell = document.createTextNode(h2.textContent);
+    } else {
+      textCell = '';
     }
-    // Each row: [image, text]
-    cells.push([
-      img || '',
-      textCell
-    ]);
+    rows.push([imgCell, textCell]);
   });
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+
+  // Build the table block
+  const table = WebImporter.DOMUtils.createTable([
+    headerRow,
+    ...rows
+  ], document);
+
+  // Replace the original element
   element.replaceWith(table);
 }

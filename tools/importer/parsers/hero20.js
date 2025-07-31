@@ -1,26 +1,30 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // The panel with the background color and content
-  const panel = element.querySelector('.cm-content-panel-container');
+  // 1. Find the main content container.
+  // In this HTML, it's the .cm-rich-text (or .module__content) child div
+  const content = element.querySelector('.cm-rich-text, .module__content');
 
-  // The block expects 3 rows: header, (optional) background image, content
-  // No background image in this case, so empty string for second row
+  // 2. Prepare the header row as per block spec
+  const headerRow = ['Hero (hero20)'];
 
-  // Get the content panel's rich text area
-  const blockContent = panel.querySelector('.cm-rich-text');
+  // 3. For this HTML there is NO background image, so second row is empty string
+  const bgRow = [''];
 
-  // Collect all element children for the content row
-  const contentNodes = Array.from(blockContent.children);
-  // If there is no content, ensure the row is still created
-  const contentCell = contentNodes.length > 0 ? contentNodes : [''];
+  // 4. Compose the content row:
+  // We should include the heading, the subheading, and the cta in a single cell, as the example combines them
+  // We'll gather all child nodes of the content block and reference them directly
+  let contentCell = [];
+  if (content) {
+    // Collect all children elements (heading, paragraphs, etc)
+    contentCell = Array.from(content.children);
+  }
 
+  // 5. Assemble the block table
   const cells = [
-    ['Hero (hero20)'], // Table header matches exactly
-    [''], // No background image for this block
+    headerRow,
+    bgRow,
     [contentCell]
   ];
-
-  // Replace the original element with the table
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

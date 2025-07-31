@@ -1,70 +1,97 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // 1. Table header as in the example
+  // 1. Header row: EXACT match to example
   const headerRow = ['Hero (hero22)'];
 
-  // 2. Extract background image (row 2)
-  let imageEl = null;
-  const bgDiv = element.querySelector('.intrinsic-el.img');
-  if (bgDiv && bgDiv.style && bgDiv.style.backgroundImage) {
-    const match = bgDiv.style.backgroundImage.match(/url\((['"]?)(.*?)\1\)/);
-    if (match && match[2]) {
-      let url = match[2];
-      // Make absolute if necessary
-      const link = document.createElement('a');
-      link.href = url;
-      url = link.href;
-      imageEl = document.createElement('img');
-      imageEl.src = url;
-      // extract alt text from .vh span if present
-      const vh = bgDiv.querySelector('.vh');
-      imageEl.alt = vh ? vh.textContent.trim() : '';
+  // 2. Row 2: Background image only
+  // Find the background image URL from '.intrinsic-el.img' style
+  let bgImgUrl = '';
+  let bgImgAlt = '';
+  const imgDiv = element.querySelector('.intrinsic-el.img');
+  if (imgDiv) {
+    const bgStyle = imgDiv.getAttribute('style') || '';
+    const match = bgStyle.match(/background-image:\s*url\(['"]?([^'")]+)['"]?\)/);
+    if (match) {
+      bgImgUrl = match[1];
+    }
+    // Alt text: hidden span inside
+    const vhSpan = imgDiv.querySelector('span.vh');
+    if (vhSpan) {
+      bgImgAlt = vhSpan.textContent.trim();
+    }
+  }
+  let bgImgElem = '';
+  if (bgImgUrl) {
+    bgImgElem = document.createElement('img');
+    bgImgElem.src = bgImgUrl;
+    if (bgImgAlt) bgImgElem.alt = bgImgAlt;
+  }
+
+  // 3. Row 3: Title, Subheading, Paragraph, CTA (link)
+  let contentCell = [];
+  const content = element.querySelector('.content');
+  if (content) {
+    // Title: take .header h1 content, preserve heading
+    const h1 = content.querySelector('h1');
+    if (h1) {
+      contentCell.push(h1);
+    }
+    // Subtitle: .subtitle (render as <p> for structure)
+    const subtitle = content.querySelector('.subtitle');
+    if (subtitle) {
+      // Use a <p> for semantic meaning
+      const subP = document.createElement('p');
+      subP.textContent = subtitle.textContent.trim();
+      contentCell.push(subP);
+    }
+    // Description: <p> (not inside header)
+    const ps = Array.from(content.querySelectorAll('p'));
+    if (ps.length > 0) {
+      // Only add <p> that is not inside h1/header
+      ps.forEach(p => {
+        if (!h1 || !h1.contains(p)) {
+          contentCell.push(p);
+        }
+      });
+    }
+    // CTA: .cta as a link
+    const cta = content.querySelector('.cta');
+    if (cta) {
+      // Find nearest ancestor <a> wrapping the block for destination
+      let ctaHref = '';
+      let ancestor = element;
+      while (ancestor && ancestor !== document.body) {
+        if (ancestor.tagName === 'A' && ancestor.href) {
+          ctaHref = ancestor.href;
+          break;
+        }
+        ancestor = ancestor.parentElement;
+      }
+      // If not found, look for <a> inside the section
+      if (!ctaHref) {
+        const a = element.querySelector('a[href]');
+        if (a) ctaHref = a.href;
+      }
+      if (ctaHref) {
+        const link = document.createElement('a');
+        link.href = ctaHref;
+        link.textContent = cta.textContent.trim();
+        // Per best practice, add button styling class if needed
+        link.className = 'button primary';
+        contentCell.push(link);
+      }
     }
   }
 
-  // 3. Extract content (row 3)
-  const contentDiv = element.querySelector('.content');
-  const contentParts = [];
+  // Fill with empty string if no content found to ensure correct structure
+  if (contentCell.length === 0) contentCell = [''];
 
-  if (contentDiv) {
-    // Title (h1.header)
-    const h1 = contentDiv.querySelector('.header');
-    if (h1) contentParts.push(h1);
-    // Subheading (.subtitle)
-    const subtitle = contentDiv.querySelector('.subtitle');
-    if (subtitle) contentParts.push(subtitle);
-    // Description (first p in .content)
-    // Be careful not to double add the h1, which has <p> inside
-    const allPs = Array.from(contentDiv.querySelectorAll('p'));
-    allPs.forEach((p) => {
-      // Only add p if not inside the h1.header
-      if (!h1 || !h1.contains(p)) {
-        contentParts.push(p);
-      }
-    });
-    // CTA (.cta), as a link with the correct href
-    const ctaSpan = contentDiv.querySelector('.cta');
-    if (ctaSpan) {
-      // Find closest ancestor <a> from .cta span
-      let ctaLink = ctaSpan.closest('a');
-      // If not found, fallback to the block's main a
-      if (!ctaLink) ctaLink = element.querySelector('a');
-      if (ctaLink && ctaLink.href) {
-        const a = document.createElement('a');
-        a.href = ctaLink.href;
-        a.textContent = ctaSpan.textContent.trim();
-        contentParts.push(a);
-      }
-    }
-  }
-
-  // Build the block table, matching the structure: header, image, content
   const cells = [
     headerRow,
-    [imageEl ? imageEl : ''],
-    [contentParts]
+    [bgImgElem || ''],
+    [contentCell]
   ];
-  
-  const block = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(block);
+
+  const table = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(table);
 }

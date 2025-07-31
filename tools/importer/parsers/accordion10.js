@@ -1,44 +1,59 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row as in the example
+  // Table header matches example exactly
   const headerRow = ['Accordion (accordion10)'];
-  const rows = [];
-  // Find the <ul class="accordion-list">
-  const ul = element.querySelector('ul.accordion-list');
-  if (!ul) return;
-  // Each <li> is an accordion item
-  const accordionItems = ul.querySelectorAll(':scope > li');
-  accordionItems.forEach((li) => {
-    // Title is the <a> inside <li>
-    const titleAnchor = li.querySelector(':scope > a.accordion-item');
-    let titleCell;
-    if (titleAnchor) {
-      // Remove trailing chevron or icon if present
-      const chevron = titleAnchor.querySelector('.ec');
-      if (chevron) chevron.remove();
-      // Remove aria attributes and class for block clarity
-      titleAnchor.removeAttribute('aria-controls');
-      titleAnchor.removeAttribute('aria-expanded');
-      titleAnchor.removeAttribute('class');
-      titleCell = titleAnchor;
+  const rows = [headerRow];
+
+  // Find all top-level <li> in the accordion <ul>
+  const list = element.querySelector('ul.accordion-list');
+  if (!list) return;
+  const items = list.querySelectorAll(':scope > li');
+
+  items.forEach((li) => {
+    // Title: the <a> inside the <li>
+    const link = li.querySelector(':scope > a');
+    let titleNode = null;
+    if (link) {
+      // Use only textContent of <a> (excluding any <div>), use reference to text node
+      // Remove any child <div> (such as the expand/collapse icon)
+      let text = Array.from(link.childNodes)
+        .filter(n => n.nodeType === Node.TEXT_NODE)
+        .map(n => n.textContent.trim())
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      titleNode = document.createTextNode(text);
     } else {
-      titleCell = '';
+      titleNode = document.createTextNode('');
     }
-    // The content is the next sibling div (expandcollapse-content)
-    let contentCell = '';
-    const contentDiv = li.querySelector(':scope > div.expandcollapse-content');
-    if (contentDiv) {
-      // If there's a .cm.cm-rich-text child, use that, else use contentDiv
-      const richText = contentDiv.querySelector('.cm.cm-rich-text');
-      if (richText) {
-        contentCell = richText;
+
+    // Content: the <div.js-ec> inside the <li>
+    const content = li.querySelector(':scope > .js-ec');
+    let contentCell;
+    if (content) {
+      // find the rich text container, or just use the .js-ec div itself
+      const rich = content.querySelector('.cm-rich-text, .module__content, .l-full-width');
+      if (rich) {
+        // include all child nodes (including inline elements, lists, etc.)
+        const children = Array.from(rich.childNodes).filter(
+          node => (node.nodeType === Node.ELEMENT_NODE) || (node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+        );
+        contentCell = children.length === 1 ? children[0] : children;
       } else {
-        contentCell = contentDiv;
+        // fallback: all content's child nodes
+        const children = Array.from(content.childNodes).filter(
+          node => (node.nodeType === Node.ELEMENT_NODE) || (node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+        );
+        contentCell = children.length === 1 ? children[0] : children;
       }
+    } else {
+      contentCell = document.createTextNode('');
     }
-    rows.push([titleCell, contentCell]);
+
+    rows.push([titleNode, contentCell]);
   });
-  const cells = [headerRow, ...rows];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+
+  // Create the table block
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

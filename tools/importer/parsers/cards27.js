@@ -1,53 +1,43 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header as shown in the example
-  const cells = [['Cards (cards27)']];
+  // Table header as required by spec
+  const headerRow = ['Cards (cards27)'];
 
-  // Each .sl-item holds 1 or more card sections
-  const slItems = element.querySelectorAll('.sl-item');
-  slItems.forEach(slItem => {
-    const cardSections = slItem.querySelectorAll('section.cm-content-tile');
-    cardSections.forEach(section => {
-      // Image cell
-      let imageCell = '';
-      const img = section.querySelector('.image img');
-      if (img) imageCell = img;
-
-      // Text content cell
+  // Find the card sections.
+  const cards = [];
+  // Defensive: find .sl-list, then all section.cm-content-tile inside
+  const slList = element.querySelector('.sl-list');
+  if (slList) {
+    const cardSections = slList.querySelectorAll('section.cm-content-tile');
+    cardSections.forEach((section) => {
+      // First cell: the card image (if present)
+      let img = null;
+      const imageDiv = section.querySelector('.image');
+      if (imageDiv) {
+        img = imageDiv.querySelector('img');
+      }
+      // Second cell: the card content: heading, description, CTA
       const contentDiv = section.querySelector('.content');
-      const textElements = [];
+      const contentElements = [];
       if (contentDiv) {
-        // Title: <h3 class="header"><b>...</b></h3>
-        const title = contentDiv.querySelector('.header');
-        if (title) textElements.push(title);
-
-        // Remove empty subheading
-        const subheading = contentDiv.querySelector('.subheading');
-        if (subheading && !subheading.textContent.trim()) subheading.remove();
-
-        // Description: any <p> with non-empty text and without <a>
-        const paragraphs = contentDiv.querySelectorAll('p');
-        paragraphs.forEach(p => {
-          const hasLink = !!p.querySelector('a');
-          if (!hasLink && p.textContent.trim()) {
-            textElements.push(p);
+        // Heading
+        const heading = contentDiv.querySelector('h3');
+        if (heading) contentElements.push(heading);
+        // Subheading (is empty, skip)
+        // Description: p (non-empty, not .subheading, not containing only links)
+        const contentPs = Array.from(contentDiv.querySelectorAll('p'));
+        contentPs.forEach((p) => {
+          if (p.classList.contains('subheading')) return; // skip subheading (empty)
+          if (p.textContent.trim() || p.querySelector('a')) {
+            contentElements.push(p);
           }
         });
-
-        // CTA row: collect all <a> (buttons/links) from the last <p> that contains <a>
-        const ctaP = Array.from(paragraphs).reverse().find(p => p.querySelector('a'));
-        if (ctaP) {
-          ctaP.querySelectorAll('a').forEach(a => textElements.push(a));
-        }
       }
-      cells.push([
-        imageCell,
-        textElements
-      ]);
+      cards.push([img, contentElements]);
     });
-  });
-
-  // Create and replace with the table
-  const table = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(table);
+  }
+  // Compose final table
+  const tableData = [headerRow, ...cards];
+  const block = WebImporter.DOMUtils.createTable(tableData, document);
+  element.replaceWith(block);
 }

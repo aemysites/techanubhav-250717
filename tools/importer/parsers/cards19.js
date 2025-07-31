@@ -1,40 +1,52 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Get all cards (content tiles)
-  const tiles = Array.from(
-    element.querySelectorAll('section.cm-content-tile, section.cm.cm-content-tile')
-  );
-  if (!tiles.length) return;
+  // Cards (cards19) block header
+  const headerRow = ['Cards (cards19)'];
+  const cells = [headerRow];
 
-  // Build rows for the cards19 table
-  const rows = [['Cards (cards19)']];
+  // Find all .cm-content-tile sections inside the element (these are the cards)
+  const cardSections = element.querySelectorAll('.cm-content-tile');
 
-  tiles.forEach((tile) => {
-    // Image (mandatory)
-    const img = tile.querySelector('.image img');
-    // Text content container
-    const contentDiv = tile.querySelector('.content');
-    const contentCells = [];
-
-    if (contentDiv) {
-      // Title (optional)
-      const title = contentDiv.querySelector('h3, .header');
-      if (title) contentCells.push(title);
-
-      // Description/paragraph(s), excluding empty and subheading
-      const paragraphs = Array.from(contentDiv.querySelectorAll('p'));
-      paragraphs.forEach((p) => {
-        // Exclude empty subheading <p> (commonly used as a spacer)
-        if (p.classList.contains('subheading') && !p.textContent.trim()) return;
-        if (p.textContent.trim() || p.querySelector('a')) {
-          contentCells.push(p);
-        }
-      });
+  cardSections.forEach((section) => {
+    // Get image (should be in .image > a > img)
+    let imageCell = null;
+    const imageAnchor = section.querySelector('.image a');
+    if (imageAnchor && imageAnchor.querySelector('img')) {
+      imageCell = imageAnchor.querySelector('img');
     }
 
-    rows.push([img, contentCells]);
+    // Get content area
+    const contentDiv = section.querySelector('.content');
+    const contentFragments = [];
+    if (contentDiv) {
+      // Title (h3.header)
+      const title = contentDiv.querySelector('h3');
+      if (title) contentFragments.push(title);
+      // Description (all <p> that are not .subheading and do not contain a CTA)
+      const paragraphs = contentDiv.querySelectorAll('p');
+      paragraphs.forEach((p) => {
+        if (!p.classList.contains('subheading') && !p.querySelector('.cta')) {
+          // Only push paragraph if it has visible text
+          if (p.textContent && p.textContent.trim().length > 0) {
+            contentFragments.push(p);
+          }
+        }
+      });
+      // CTA (a) - only if it is a direct child of contentDiv (should be the 'Learn more' link)
+      const cta = Array.from(contentDiv.querySelectorAll('a')).find(a => a.querySelector('.cta'));
+      if (cta) contentFragments.push(cta);
+    }
+
+    // Handle case where content is empty (should not happen, but be defensive)
+    if (imageCell || contentFragments.length > 0) {
+      cells.push([
+        imageCell,
+        contentFragments.length === 1 ? contentFragments[0] : contentFragments
+      ]);
+    }
   });
 
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  // Create the block table
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

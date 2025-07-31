@@ -1,42 +1,43 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the main column container
-  const columnContainer = element.querySelector('.column-container');
-  if (!columnContainer) return;
+  // Find the main columns container (usually only one per block)
+  const columnsContainer = element.querySelector('.column-container');
+  if (!columnsContainer) return;
 
-  // Find the .sl-list which represents the columns
-  const slList = columnContainer.querySelector('.sl-list');
+  // The columns in this pattern are inside .sl-list > .sl-item
+  const slList = columnsContainer.querySelector('.sl-list');
   if (!slList) return;
   const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
-  if (slItems.length < 2) return;
 
-  // For each .sl-item, gather all non-empty child nodes (to include text nodes and elements)
-  const getCellContent = (slItem) => {
-    const nodes = [];
-    slItem.childNodes.forEach((n) => {
-      if (n.nodeType === Node.ELEMENT_NODE) {
-        nodes.push(n);
-      } else if (n.nodeType === Node.TEXT_NODE && n.textContent.trim()) {
-        const span = document.createElement('span');
-        span.textContent = n.textContent;
-        nodes.push(span);
+  // For each column/sl-item, collect its direct child elements that are meaningful
+  const columns = slItems.map((item) => {
+    // We'll collect all immediate children that are elements and have meaningful content
+    const content = [];
+    item.childNodes.forEach((node) => {
+      if (node.nodeType === 1) {
+        // Only element nodes
+        const el = node;
+        // Only push elements that are not empty
+        if (
+          (el.textContent && el.textContent.trim() !== '') ||
+          el.querySelector('img,table,ul,ol,a')
+        ) {
+          content.push(el);
+        }
       }
     });
-    return nodes.length === 1 ? nodes[0] : nodes;
-  };
+    // If all children are empty, use the whole item
+    if (!content.length) content.push(item);
+    return content.length === 1 ? content[0] : content;
+  });
 
-  // Prepare content for each column
-  const columnsContent = slItems.map(getCellContent);
+  // Create the table structure for Columns block
+  const cells = [
+    ['Columns (columns1)'],
+    columns
+  ];
 
-  // Build the correct table structure: header row is a single column, second row has columns
-  const headerRow = ['Columns (columns1)'];
-  const contentRow = columnsContent;
-
-  const block = WebImporter.DOMUtils.createTable([
-    headerRow,
-    contentRow
-  ], document);
-
-  // Replace the element with the new block
-  element.replaceWith(block);
+  // Create the block table and replace the original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(table);
 }
