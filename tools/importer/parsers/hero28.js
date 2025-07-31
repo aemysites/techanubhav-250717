@@ -1,58 +1,73 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Block header row
+  // Table header row as required
   const headerRow = ['Hero (hero28)'];
 
-  // Try to dynamically extract the background image URL and its alt text
-  let imgEl = null;
-  let textContent = '';
-  const intrinsicEl = element.querySelector('.intrinsic-el.img');
-  if (intrinsicEl) {
-    // Extract background image URL
-    let bgUrl = '';
-    if (intrinsicEl.style && intrinsicEl.style.backgroundImage) {
-      const match = intrinsicEl.style.backgroundImage.match(/url\(["']?(.+?)["']?\)/);
-      if (match && match[1]) {
-        bgUrl = match[1];
-      }
-    }
-    if (bgUrl) {
-      // Resolve to absolute URL
-      const a = document.createElement('a');
-      a.href = bgUrl;
-      const absUrl = a.href;
-      imgEl = document.createElement('img');
-      imgEl.src = absUrl;
-      // Fetch alt text from child span.vh (if present)
-      const vh = intrinsicEl.querySelector('span.vh');
-      imgEl.alt = vh && vh.textContent ? vh.textContent.trim() : '';
-    }
-    // Extract any visible text content (e.g., span.vh)
-    // Only add text if it's not the same as alt text (to avoid duplication)
-    const vh = intrinsicEl.querySelector('span.vh');
-    if (vh && vh.textContent) {
-      textContent = vh.textContent.trim();
+  // --- Extract Background Image (row 2) ---
+  let bgImgEl = null;
+  const bgdiv = element.querySelector('.intrinsic-el.img');
+  if (bgdiv) {
+    const style = bgdiv.getAttribute('style') || '';
+    const urlMatch = style.match(/background-image:\s*url\((['"]?)(.*?)\1\)/i);
+    if (urlMatch && urlMatch[2]) {
+      // Resolve the URL (relative or absolute)
+      const img = document.createElement('img');
+      // Convert to absolute URL if needed
+      const temp = document.createElement('a');
+      temp.href = urlMatch[2];
+      img.src = temp.href;
+      // Get alt text from .vh span
+      const altSpan = bgdiv.querySelector('span') || element.querySelector('.vh');
+      img.alt = altSpan ? altSpan.textContent.trim() : '';
+      bgImgEl = img;
     }
   }
 
-  // Second row: background image (optional)
-  const imageRow = [imgEl];
+  // --- Extract All Remaining Text Content (row 3) ---
+  // In the source HTML, the only textual content is within the .vh span
+  // To be robust to future variations, grab ALL text nodes that are not empty and not inside the img div
+  const imgDiv = element.querySelector('.intrinsic-el.img');
+  // Collect possible text nodes in the entire block, except inside the background image div
+  let textNodes = [];
+  function extractTextNodes(node) {
+    if (!imgDiv || !imgDiv.contains(node)) {
+      node.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
+          textNodes.push(child.textContent.trim());
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          extractTextNodes(child);
+        }
+      });
+    }
+  }
+  extractTextNodes(element);
 
-  // Third row: text content (if any)
-  // Only add a paragraph if there is text content and it is not empty
-  let contentRow;
-  if (textContent) {
+  // Also, explicitly check for .vh span if it's missed
+  if (textNodes.length === 0) {
+    const vhSpan = element.querySelector('.vh');
+    if (vhSpan && vhSpan.textContent.trim()) {
+      textNodes = [vhSpan.textContent.trim()];
+    }
+  }
+
+  // If there is any text at all, add to a paragraph for semantic clarity
+  let textCell;
+  if (textNodes.length > 0) {
     const p = document.createElement('p');
-    p.textContent = textContent;
-    contentRow = [p];
+    p.textContent = textNodes.join(' ');
+    textCell = [p];
   } else {
-    contentRow = [''];
+    textCell = [''];
   }
 
-  // Compose cells array (one table, one header, exactly as in the example)
-  const cells = [headerRow, imageRow, contentRow];
+  // Build the table rows per Hero (hero28) block structure
+  const rows = [
+    headerRow,
+    [bgImgEl].filter(Boolean),
+    textCell
+  ];
 
-  // Create the block table and replace the original element
-  const block = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(block);
+  // Create and replace block table
+  const table = WebImporter.DOMUtils.createTable(rows, document);
+  element.replaceWith(table);
 }

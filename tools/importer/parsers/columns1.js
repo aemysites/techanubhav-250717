@@ -1,43 +1,31 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the main columns container (usually only one per block)
-  const columnsContainer = element.querySelector('.column-container');
-  if (!columnsContainer) return;
+  // Find the main columns container
+  const columnContainer = element.querySelector('.column-container');
+  if (!columnContainer) return;
 
-  // The columns in this pattern are inside .sl-list > .sl-item
-  const slList = columnsContainer.querySelector('.sl-list');
+  // The actual columns are .sl-item inside .sl-list
+  const slList = columnContainer.querySelector('.sl-list');
   if (!slList) return;
-  const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
 
-  // For each column/sl-item, collect its direct child elements that are meaningful
-  const columns = slItems.map((item) => {
-    // We'll collect all immediate children that are elements and have meaningful content
-    const content = [];
-    item.childNodes.forEach((node) => {
-      if (node.nodeType === 1) {
-        // Only element nodes
-        const el = node;
-        // Only push elements that are not empty
-        if (
-          (el.textContent && el.textContent.trim() !== '') ||
-          el.querySelector('img,table,ul,ol,a')
-        ) {
-          content.push(el);
-        }
-      }
+  const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
+  if (slItems.length === 0) return;
+
+  // For each sl-item, collect its full content as a cell
+  const colCells = slItems.map((item) => {
+    const children = Array.from(item.childNodes).filter(n => {
+      if (n.nodeType === Node.TEXT_NODE) return n.textContent.trim() !== '';
+      return true;
     });
-    // If all children are empty, use the whole item
-    if (!content.length) content.push(item);
-    return content.length === 1 ? content[0] : content;
+    return children.length === 1 ? children[0] : children;
   });
 
-  // Create the table structure for Columns block
-  const cells = [
-    ['Columns (columns1)'],
-    columns
-  ];
-
-  // Create the block table and replace the original element
-  const table = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(table);
+  // Header row MUST be a single cell matching the example
+  const headerRow = ['Columns (columns1)'];
+  // The second row is the columns row
+  const tableRows = [headerRow, colCells];
+  
+  // Create the block table and replace the element
+  const block = WebImporter.DOMUtils.createTable(tableRows, document);
+  element.replaceWith(block);
 }

@@ -1,47 +1,26 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header for the columns block
-  const headerRow = ['Columns (columns17)'];
-
-  // Find the two columns (sl-item)
-  const slList = element.querySelector('.sl-list');
+  // Validate required container structure
+  const sl = element.querySelector('.sl');
+  if (!sl) return;
+  const slList = sl.querySelector('.sl-list');
   if (!slList) return;
   const slItems = slList.querySelectorAll(':scope > .sl-item');
   if (slItems.length < 2) return;
 
-  // First column: the left -- the phone image section
-  let leftCol = null;
-  {
-    // Use the whole section for semantic meaning
-    const imgSection = slItems[0].querySelector('section, figure, img');
-    if (imgSection) {
-      // Use the topmost section/figure or fallback to the img
-      if (imgSection.tagName === 'SECTION' || imgSection.tagName === 'FIGURE') {
-        leftCol = imgSection;
-      } else {
-        leftCol = imgSection;
-      }
-    }
-  }
+  // First column: phone image (keep entire <section class="cm cm-image"> for robustness)
+  let col1 = slItems[0].querySelector('section.cm-image, section.cm.cm-image');
+  if (!col1) col1 = slItems[0]; // fallback to whole item if image section missing
 
-  // Second column: the right -- text + links
-  let rightCol = null;
-  {
-    // Use all content inside the .cm-rich-text container
-    const richText = slItems[1].querySelector('.cm-rich-text');
-    if (richText) {
-      rightCol = richText;
-    }
-  }
+  // Second column: right rich text area (keep all content of .cm-rich-text)
+  let col2 = slItems[1].querySelector('.cm-rich-text, .cm.cm-rich-text');
+  if (!col2) col2 = slItems[1]; // fallback
 
-  if (!leftCol || !rightCol) return;
-
-  // Build the table
+  // Compose table cells as per block spec
   const cells = [
-    headerRow,
-    [leftCol, rightCol]
+    ['Columns (columns17)'],
+    [col1, col2]
   ];
-
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }
