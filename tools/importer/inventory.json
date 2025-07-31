@@ -44,25 +44,25 @@
           "url": "https://virginmoney.com.au",
           "urlHash": "5b47a4a2af7ec8842e5b0f37f75a8d4093caffc5",
           "uuid": "5b47a4a2-24-576870337abf0aa323a1fe75a33f2b359b589104",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer[1]"
         },
         {
           "url": "https://virginmoney.com.au/help/faqs",
           "urlHash": "8932d0be8e75bb65a832173f70a03c994ea36044",
           "uuid": "8932d0be-05-576870337abf0aa323a1fe75a33f2b359b589104",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer[1]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-34-6eaecc75367f81e565aca302ec4c45ef10df66ef",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer"
+          "xpath": "/html[1]/body[1]/div[1]/footer[1]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card/faqs",
           "urlHash": "e86d63cd8a4bfb410cacd85053940b813e9523a8",
           "uuid": "e86d63cd-12-6eaecc75367f81e565aca302ec4c45ef10df66ef",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/footer"
+          "xpath": "/html[1]/body[1]/div[1]/footer[1]"
         }
       ],
       "styles": {
