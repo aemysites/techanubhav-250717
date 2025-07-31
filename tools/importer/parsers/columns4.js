@@ -1,21 +1,26 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the .sl-list container which holds the columns
-  const slList = element.querySelector('.sl-list');
-  if (!slList) return;
-  // Each child of .sl-list is a column
-  const items = Array.from(slList.children).filter(child => child.classList.contains('sl-item'));
-  // For each .sl-item, get its <section> (with heading and list)
-  const columns = items.map(item => {
-    const section = item.querySelector('section');
-    return section || '';
-  });
-  // Table header: single cell with Columns (columns4)
+  // Header row should be a single column (array with one string)
   const headerRow = ['Columns (columns4)'];
-  // Second row: one cell per column content
-  const contentRow = columns;
-  // Table: first row is header, second row is columns content
-  const cells = [headerRow, contentRow];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+
+  // Find the sl-list container holding the columns
+  const slList = element.querySelector('.sl-list');
+  let columns = [];
+  if (slList) {
+    const slItems = Array.from(slList.children).filter(child => child.classList.contains('sl-item'));
+    columns = slItems.map(item => {
+      // Each sl-item's section contains the relevant block for the column
+      const section = item.querySelector('section');
+      return section || item;
+    });
+  }
+  // If no columns found, fallback to an empty cell for robustness
+  if (columns.length === 0) {
+    columns = [''];
+  }
+
+  // Compose the table: first row (header) is single column, second row has N columns
+  const rows = [headerRow, columns];
+  const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

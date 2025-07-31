@@ -1,29 +1,38 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the columns list container
-  const slList = element.querySelector('.sl-list');
-  if (!slList) return;
-  // Find all immediate column items
-  const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
+  // Find the columns container
+  const columnsWrapper = element.querySelector('.sl-list');
+  if (!columnsWrapper) return;
 
-  // Collect cells for each column
-  const columns = slItems.map((item) => {
-    // If image section exists, use it as the column content
-    const imageSection = item.querySelector(':scope > section.cm-image');
-    if (imageSection) return imageSection;
-    // Otherwise, rich text content
-    const richText = item.querySelector(':scope > .cm-rich-text, :scope > .module__content');
-    if (richText) return richText;
-    // Fallback: whole item
-    return item;
+  // Get the immediate '.sl-item' children (columns)
+  const columnEls = Array.from(columnsWrapper.querySelectorAll(':scope > .sl-item'));
+
+  // Defensive: If there are less than 2 columns, do not proceed
+  if (columnEls.length < 2) return;
+
+  // Compose table header as in the example
+  const headerRow = ['Columns (columns7)'];
+
+  // For each column, get the main block of content
+  const columns = columnEls.map((colEl) => {
+    // If the column contains a .cm-image or figure with img (image column)
+    const imageSection = colEl.querySelector('.cm-image') || colEl.querySelector('figure');
+    if (imageSection) {
+      return imageSection;
+    }
+    // If the column contains a .cm-rich-text (text, heading, downloads)
+    const richTextSection = colEl.querySelector('.cm-rich-text');
+    if (richTextSection) {
+      return richTextSection;
+    }
+    // Fallback: use all content inside this column
+    return colEl;
   });
 
-  // Construct block table
-  const cells = [
-    ['Columns (columns7)'],
-    columns
-  ];
+  // Build the block table: header, then columns
+  const tableCells = [headerRow, columns];
+  const table = WebImporter.DOMUtils.createTable(tableCells, document);
 
-  const block = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(block);
+  // Replace the original element with the generated table
+  element.replaceWith(table);
 }
