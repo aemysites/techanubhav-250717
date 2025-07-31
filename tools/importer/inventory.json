@@ -82,31 +82,31 @@
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-10-2ea48769889ffb66cc1eaa23df8ebdfc2b9643b4",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/article[1]/main[1]/div[7]"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[7]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-11-dce0b6ac2daab24b217525adfad6b61649da13bb",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/article[1]/main[1]/div[8]"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[8]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-12-2815c75727f19eca5997b05e70c452e43a0559a5",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/article[1]/main[1]/div[9]"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[9]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-13-affe014be549fa28111fa076d4f484ff4f8e12a0",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/article[1]/main[1]/div[10]"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[10]"
         },
         {
           "url": "https://virginmoney.com.au/credit-card",
           "urlHash": "c8bcf026fdf90359448f304d08ad001f7d9461a7",
           "uuid": "c8bcf026-14-b877b5709f2b10ff27c3db6419c04cf4e70dbf4c",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[4]/article[1]/main[1]/div[11]"
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[5]/article[1]/main[1]/div[11]"
         }
       ]
     },
