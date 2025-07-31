@@ -1,25 +1,24 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row: Must match exactly
-  const headerRow = ['Columns (columns11)'];
+  // Get all top-level <li> inside the nav > ul
+  const listItems = Array.from(element.querySelectorAll(':scope > ul > li'));
 
-  // Get top-level columns: nav > ul > li (direct children)
-  const navUl = element.querySelector('ul.nav-footer');
-  if (!navUl) return;
-  const columnLis = Array.from(navUl.children);
-
-  // For each column <li>, gather its content as an array of actual references (not clones)
-  const cells = columnLis.map((colLi) => {
-    // We want to return the children of each li as a single cell content array
-    return Array.from(colLi.childNodes).filter(node => {
-      // Only include elements and text with non-whitespace
-      return (node.nodeType === 1) || (node.nodeType === 3 && node.textContent.trim() !== '');
-    });
+  // For each <li>, unwrap its children into a new <div> (move, not clone, to ensure no duplicate DOM)
+  const columns = listItems.map((li) => {
+    const div = document.createElement('div');
+    while (li.firstChild) {
+      div.appendChild(li.firstChild); // This moves nodes out of the <li>
+    }
+    return div;
   });
 
-  // The table structure: [header], [col1, col2, col3]
-  const tableCells = [headerRow, cells];
-  const table = WebImporter.DOMUtils.createTable(tableCells, document);
+  const headerRow = ['Columns (columns11)'];
+  const columnsRow = columns;
+
+  const table = WebImporter.DOMUtils.createTable([
+    headerRow,
+    columnsRow
+  ], document);
 
   element.replaceWith(table);
 }
