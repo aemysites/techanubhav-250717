@@ -1,43 +1,55 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header: must match exactly
-  const headerRow = ['Hero (hero2)'];
-
-  // 2nd row: Background image (if present)
-  let bgImgEl = null;
-  const imgDiv = element.querySelector('.intrinsic-el.img');
-  if (imgDiv) {
-    const style = imgDiv.getAttribute('style') || '';
-    const match = style.match(/background-image:\s*url\(([^)]+)\)/i);
-    if (match && match[1]) {
-      const src = match[1].replace(/['"]/g, '');
-      bgImgEl = document.createElement('img');
-      bgImgEl.src = src;
-      // Use visually hidden span as alt text if present
-      const altSpan = imgDiv.querySelector('span');
-      bgImgEl.alt = altSpan ? altSpan.textContent.trim() : '';
+  // 1. Extract the background image as an <img>
+  let imgEl = null;
+  let altText = '';
+  // Try to find the div with background-image
+  const bgDiv = element.querySelector('.intrinsic-el.img');
+  if (bgDiv && bgDiv.style && bgDiv.style.backgroundImage) {
+    const bgStyle = bgDiv.style.backgroundImage;
+    const urlMatch = bgStyle.match(/url\(["']?(.*?)["']?\)/);
+    if (urlMatch && urlMatch[1]) {
+      // Convert relative URL to absolute
+      const a = document.createElement('a');
+      a.href = urlMatch[1];
+      const absUrl = a.href;
+      imgEl = document.createElement('img');
+      imgEl.src = absUrl;
+      // Get alt text if present (from .vh span)
+      const vhSpan = bgDiv.querySelector('.vh') || element.querySelector('.vh');
+      if (vhSpan) {
+        altText = vhSpan.textContent.trim();
+        imgEl.alt = altText;
+      }
     }
   }
-  const imageRow = [bgImgEl ? bgImgEl : ''];
-
-  // 3rd row: All textual/element content that is NOT the background image
-  // In this source structure, .intrinsic-el.img (background image) is separate from other content (which is absent here)
-  // However, parse for text outside image for generality
-  // We'll gather all direct children except those related to image
-  const nonImgContent = Array.from(element.children).filter(child => {
-    // Exclude any branch that contains the image div
-    return !child.classList.contains('intrinsic-wrap');
+  // 2. Extract all visible text content (except from script/style, and except what's used as image alt)
+  let textContent = '';
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      const val = node.textContent.trim();
+      if (!val) return NodeFilter.FILTER_REJECT;
+      // Exclude script/style tags
+      const tag = node.parentElement && node.parentElement.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+      // Exclude text used as alt text
+      if (altText && val === altText) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
   });
-  // If there is non-image content, include it. Otherwise, leave empty string cell.
-  let contentCell = '';
-  if (nonImgContent.length) {
-    // If multiple elements, include them as an array so they render in one cell
-    contentCell = nonImgContent.length === 1 ? nonImgContent[0] : nonImgContent;
+  let node, textNodes = [];
+  while ((node = walker.nextNode())) {
+    textNodes.push(node.textContent.trim());
   }
-  const contentRow = [contentCell];
+  // Combine all remaining text, preserving newlines if multiple blocks
+  textContent = textNodes.join('\n').trim();
 
-  // Table structure
-  const cells = [headerRow, imageRow, contentRow];
+  // 3. Compose the table in the structure: header, image, content
+  const cells = [
+    ['Hero (hero2)'],
+    [imgEl],
+    [textContent ? textContent : ''],
+  ];
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

@@ -1,55 +1,93 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header for Accordion block
+  // Step 1: Prepare the rows array; header first
   const cells = [['Accordion']];
 
-  // Find accordion items: <ul class="accordion-list"><li> ... </li></ul>
-  const accordionList = element.querySelector('.accordion-list');
-  if (!accordionList) return;
-  // Each top-level <li> in the accordion-list is an accordion item
-  const accordionItems = accordionList.querySelectorAll(':scope > li');
+  // Step 2: Locate the main <ul class="accordion-list">
+  const accordionList = element.querySelector('ul.accordion-list');
+  if (!accordionList) {
+    // No accordion list found, do nothing
+    return;
+  }
 
-  accordionItems.forEach((item) => {
-    // Title is <a> (with label and possibly icon/chevron as <div class="ec">)
-    const title = item.querySelector('a');
-    // Content is the <div> next to the <a>
-    let content = null;
-    const aEl = title;
-    let next = aEl ? aEl.nextElementSibling : null;
-    if (next && next.tagName === 'DIV') {
-      // The content is in a <div>, typically with an <ol> of <div class="tcs-wrapper"><li>...</li></div>
-      // We'll assemble a content block from the <li>s inside each .tcs-wrapper
-      const ol = next.querySelector('ol');
-      if (ol) {
-        // Create a container for the content
-        content = document.createElement('div');
-        // Each <div.tcs-wrapper> contains a <li>
-        const wrappers = ol.querySelectorAll(':scope > div.tcs-wrapper');
-        wrappers.forEach((wrapper, idx) => {
-          const li = wrapper.querySelector('li');
-          if (li) {
-            // If li has a single p, just use the <p>, else keep whole <li>
-            if (li.childElementCount === 1 && li.firstElementChild.tagName === 'P') {
-              content.appendChild(li.firstElementChild);
-            } else {
-              content.appendChild(li);
+  // Step 3: Each accordion item is a <li> directly under accordion-list
+  // In this HTML, there is one <li> which contains all actual toggles: title <a> and content <div>
+  const topLi = accordionList.querySelector(':scope > li');
+  if (!topLi) {
+    return;
+  }
+
+  // Title is the <a>
+  const titleLink = topLi.querySelector(':scope > a');
+  let titleCell = '';
+  if (titleLink) {
+    // Only the text (strip any children like icons)
+    // Get all child text nodes (exclude elements)
+    let titleText = Array.from(titleLink.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').trim();
+    titleCell = titleText;
+  }
+
+  // Content area is <div expandcollapse-content>
+  const contentDiv = topLi.querySelector(':scope > div.expandcollapse-content');
+  let contentCell = '';
+  if (contentDiv) {
+    // There is an <ol> with multiple <div.tcs-wrapper>, each of which contains <li>
+    const ol = contentDiv.querySelector('ol');
+    if (ol) {
+      const wrappers = ol.querySelectorAll(':scope > div.tcs-wrapper');
+      // For each wrapper, gather the relevant <li> children
+      const rows = [];
+      wrappers.forEach(wrapper => {
+        const li = wrapper.querySelector('li');
+        if (!li) return;
+        // Gather <p> and any block children from the <li>
+        const liContent = [];
+        Array.from(li.childNodes).forEach(node => {
+          // Only append non-empty nodes
+          if (node.nodeType === 1) {
+            // elements
+            if (node.textContent.trim() || node.querySelector('a, b, u, i, em, strong')) {
+              liContent.push(node);
             }
+          } else if (node.nodeType === 3 && node.textContent.trim()) {
+            // text nodes
+            const span = document.createElement('span');
+            span.textContent = node.textContent.trim();
+            liContent.push(span);
           }
         });
-      } else {
-        // If no <ol>, use the entire <div> content
-        content = document.createElement('div');
-        content.append(...next.childNodes);
+        if (liContent.length) {
+          rows.push(liContent.length === 1 ? liContent[0] : liContent);
+        }
+      });
+      // Place all li contents in a fragment
+      if (rows.length) {
+        const frag = document.createDocumentFragment();
+        rows.forEach((block, idx) => {
+          if (Array.isArray(block)) {
+            block.forEach(el => frag.appendChild(el));
+          } else {
+            frag.appendChild(block);
+          }
+          // Optionally, add <br> between blocks for clarity (matches original HTML breaks)
+          if (idx !== rows.length - 1) {
+            frag.appendChild(document.createElement('br'));
+          }
+        });
+        contentCell = frag.childNodes.length === 1 ? frag.firstChild : Array.from(frag.childNodes);
       }
-    } else {
-      // Fallback: No content div, use empty div
-      content = document.createElement('div');
     }
-    // Use the existing title <a> element, and the constructed content
-    cells.push([title, content]);
-  });
+  }
 
-  // Create and replace block
+  // Add the row if there is a title or content
+  if (titleCell || contentCell) {
+    cells.push([
+      titleCell,
+      contentCell
+    ]);
+  }
+
+  // Build and replace
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

@@ -1,48 +1,38 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
+  // Helper: create header row as per requirements
   const headerRow = ['Cards (cards6)'];
-  const rows = [headerRow];
+  const cells = [headerRow];
 
-  // Get all .cm-content-tile cards in order
-  const cards = element.querySelectorAll('.cm.cm-content-tile');
-  cards.forEach(card => {
-    // First cell: Image (if present)
-    let imgCell = '';
-    const img = card.querySelector('.image img');
-    if (img) imgCell = img;
+  // All cards are <section class="cm cm-content-tile">
+  const cardSections = element.querySelectorAll('section.cm.cm-content-tile');
 
-    // Second cell: Text content
-    const contentDiv = card.querySelector('.content');
-    const cellContent = document.createElement('div');
-    // Title (h3.header)
-    const title = contentDiv && contentDiv.querySelector('.header');
-    if (title) {
-      // Directly reference the title node (not cloning, preserving original element)
-      cellContent.appendChild(title);
+  cardSections.forEach((section) => {
+    // --- COLUMN 1: Image/Icon ---
+    let img = section.querySelector('.image img');
+    let imgCell = img ? img : '';
+
+    // --- COLUMN 2: Text content (heading, description, CTA) ---
+    const content = section.querySelector('.content');
+    let textParts = [];
+    if (content) {
+      // Use existing heading (h3.header, typically has <b> inside)
+      let heading = content.querySelector('h3.header');
+      if (heading && heading.textContent.trim() !== '') {
+        textParts.push(heading);
+      }
+      // Get all <p> that are NOT .subheading and not empty
+      const ps = Array.from(content.querySelectorAll('p')).filter(
+        p => !p.classList.contains('subheading') && p.textContent.trim() !== ''
+      );
+      ps.forEach(p => textParts.push(p));
     }
-    // Description paragraphs (ignore p.subheading)
-    let ctaLink = null;
-    if (contentDiv) {
-      const paras = Array.from(contentDiv.querySelectorAll('p')).filter(p => !p.classList.contains('subheading'));
-      paras.forEach(p => {
-        if (p.querySelector('a')) {
-          // If paragraph is only a CTA, extract the link to append after all descriptions
-          // but only if it's not empty text
-          if (p.textContent.trim() && p.querySelector('a')) {
-            ctaLink = p.querySelector('a');
-          }
-        } else if (p.textContent.trim()) {
-          // Only include non-empty paragraphs
-          cellContent.appendChild(p);
-        }
-      });
-    }
-    if (ctaLink) {
-      cellContent.appendChild(ctaLink);
-    }
-    rows.push([imgCell, cellContent]);
+    // Fallback: cell must NOT be empty
+    let textCell = textParts.length ? textParts : '';
+    cells.push([imgCell, textCell]);
   });
 
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  // Create table and replace original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

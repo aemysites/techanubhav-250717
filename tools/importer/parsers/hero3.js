@@ -1,61 +1,53 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row: Must exactly match the example
+  // Table header exactly as specified
   const headerRow = ['Hero (hero3)'];
 
-  // Second row: background image; not present in this HTML, so blank
-  const imageRow = [''];
+  // No background image in this HTML, so the second row is empty
+  const backgroundImageRow = [''];
 
-  // Third row: Gather content (title, subtitle, description, CTA), semantically
-  const contentEls = [];
-
-  // h1.header may be styled with <span> and <b> inside a <p>
-  // We want to use a heading, preserving its style/semantic
-  const h1 = element.querySelector('h1.header');
-  if (h1) {
-    // If h1 contains just a <p> (and that contains a <span>), unwrap to get the deepest styled element
-    let titleNode = h1;
-    if (h1.children.length === 1 && h1.children[0].tagName === 'P') {
-      const p = h1.children[0];
-      if (p.children.length === 1 && p.children[0].tagName === 'SPAN') {
-        titleNode = p.children[0];
-      } else {
-        titleNode = p;
-      }
-    }
-    contentEls.push(titleNode);
-  }
-
-  // Subtitle (optional)
+  // Build the content row with existing elements, preserving their structure
+  const content = [];
+  // Headline (h1.header may contain a <p><span><b> structure)
+  const h1 = element.querySelector('h1, .header');
+  if (h1) content.push(h1);
+  // Subheading
   const subtitle = element.querySelector('.subtitle');
-  if (subtitle && subtitle.textContent.trim()) {
-    contentEls.push(subtitle);
+  if (subtitle) {
+    content.push(document.createElement('br'));
+    content.push(subtitle);
   }
-
-  // Description paragraph: the longest <p>
-  let descP = null;
-  const paragraphs = element.querySelectorAll('p');
-  let maxLen = 0;
-  paragraphs.forEach(p => {
-    const txt = p.textContent.trim();
-    if (txt.length > maxLen) {
-      maxLen = txt.length;
-      descP = p;
+  // Main descriptive paragraph (the first non-empty p not inside h1)
+  let mainParagraph = null;
+  const pTags = element.querySelectorAll(':scope > p');
+  for (const p of pTags) {
+    if (p.textContent.trim()) {
+      mainParagraph = p;
+      break;
     }
-  });
-  if (descP && descP.textContent.trim()) {
-    contentEls.push(descP);
   }
-
-  // CTA (optional)
+  if (mainParagraph) {
+    content.push(document.createElement('br'));
+    content.push(mainParagraph);
+  }
+  // CTA button (as span.cta)
   const cta = element.querySelector('.cta');
-  if (cta && cta.textContent.trim()) {
-    contentEls.push(cta);
+  if (cta) {
+    content.push(document.createElement('br'));
+    content.push(cta);
   }
 
-  // Compose the table
-  const cells = [headerRow, imageRow, [contentEls]];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
+  // Structure as single cell in third row
+  const mainContentRow = [content];
 
-  element.replaceWith(table);
+  // Build the block table with 3 rows, 1 col each
+  const cells = [
+    headerRow,
+    backgroundImageRow,
+    mainContentRow
+  ];
+
+  // Create and replace
+  const block = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(block);
 }
