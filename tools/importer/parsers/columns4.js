@@ -1,26 +1,26 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row should be a single column (array with one string)
+  // Find all the columns in the block
+  let columns = [];
+  const slList = element.querySelector('.sl-list');
+  if (slList) {
+    columns = Array.from(slList.children);
+  }
+
+  // For each column, use the <section> inside the .sl-item, or the .sl-item itself if no section
+  const columnCells = columns.map(col => {
+    const section = col.querySelector('section') || col;
+    return section;
+  });
+
+  // Header row: single cell as in the example
   const headerRow = ['Columns (columns4)'];
 
-  // Find the sl-list container holding the columns
-  const slList = element.querySelector('.sl-list');
-  let columns = [];
-  if (slList) {
-    const slItems = Array.from(slList.children).filter(child => child.classList.contains('sl-item'));
-    columns = slItems.map(item => {
-      // Each sl-item's section contains the relevant block for the column
-      const section = item.querySelector('section');
-      return section || item;
-    });
-  }
-  // If no columns found, fallback to an empty cell for robustness
-  if (columns.length === 0) {
-    columns = [''];
-  }
-
-  // Compose the table: first row (header) is single column, second row has N columns
-  const rows = [headerRow, columns];
-  const table = WebImporter.DOMUtils.createTable(rows, document);
+  // Build the table: header row (single cell), then content row (one cell per column)
+  const table = WebImporter.DOMUtils.createTable([
+    headerRow,
+    columnCells
+  ], document);
+  
   element.replaceWith(table);
 }

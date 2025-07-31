@@ -1,32 +1,37 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  const headerRow = ['Cards (cards8)'];
-  const rows = [];
+  // Build the table rows array
+  const rows = [
+    ['Cards (cards8)']
+  ];
 
-  // Find all cards
-  const slList = element.querySelector('.sl-list');
-  if (!slList) return;
-  const items = slList.querySelectorAll(':scope > .sl-item');
+  // Select all the cards
+  const items = element.querySelectorAll(':scope .sl-list > .sl-item');
   items.forEach((item) => {
-    // Get the image element
-    const img = item.querySelector('img');
-    // First cell: image only (reference existing <img>)
-    const imgCell = img;
+    const link = item.querySelector('a.cm-image-block-link');
+    if (!link) return; // skip if no link/card content
 
-    // Get the heading (title) from h2
-    const h2 = item.querySelector('h2');
-    let textCellContent = [];
-    if (h2) {
-      // Use <strong> for heading as in markdown example, but keep original text
-      const strong = document.createElement('strong');
-      strong.textContent = h2.textContent;
-      textCellContent.push(strong);
+    // Image cell: the <img> inside the card
+    const img = link.querySelector('.image img');
+    // Text cell: the title
+    const contentDiv = link.querySelector('.content');
+    let textContent;
+    if (contentDiv) {
+      const h2 = contentDiv.querySelector('h2');
+      if (h2) {
+        // Use the <h2> element as the card heading (reference it directly)
+        textContent = h2;
+      }
     }
-    // No additional description or CTA in these cards
-    rows.push([imgCell, textCellContent.length ? textCellContent : '']);
+    if (img && textContent) {
+      rows.push([
+        img,
+        [textContent]
+      ]);
+    }
   });
 
-  const cells = [headerRow, ...rows];
-  const table = WebImporter.DOMUtils.createTable(cells, document);
-  element.replaceWith(table);
+  // Create the block table and replace the original element
+  const block = WebImporter.DOMUtils.createTable(rows, document);
+  element.replaceWith(block);
 }
