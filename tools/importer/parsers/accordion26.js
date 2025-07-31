@@ -1,44 +1,47 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Accordion block header row
+  // Build header row
   const headerRow = ['Accordion (accordion26)'];
   const rows = [headerRow];
 
-  // Find all accordion items
+  // Locate the accordion content: the UL > LI structure
   const ul = element.querySelector('ul.accordion-list');
   if (!ul) return;
-  const allLi = Array.from(ul.querySelectorAll(':scope > li'));
+  const li = ul.querySelector('li');
+  if (!li) return;
 
-  allLi.forEach(li => {
-    // Title: <a class="accordion-item">
-    const titleAnchor = li.querySelector('a.accordion-item');
-    // Content: <div class="expandcollapse-content">
-    const contentDiv = li.querySelector('div.expandcollapse-content');
-    if (!titleAnchor || !contentDiv) return;
+  // Get the title from the <a> (remove the icon div.ec)
+  const titleLink = li.querySelector('a.accordion-item');
+  let titleCell = '';
+  if (titleLink) {
+    // Clone the <a> and remove .ec div (expand/collapse icon)
+    const divs = titleLink.querySelectorAll('div.ec');
+    divs.forEach(d => d.remove());
+    // Use the <a> itself as the cell (contains any links/text)
+    titleCell = titleLink;
+  }
 
-    // Create a title element that only includes the visible label (no icons/divs)
-    let titleText = '';
-    Array.from(titleAnchor.childNodes).forEach(n => {
-      if (n.nodeType === Node.TEXT_NODE) {
-        titleText += n.textContent;
-      }
-    });
-    const titleEl = document.createElement('div');
-    titleEl.textContent = titleText.trim();
+  // Content: div.expandcollapse-content > ol > many div.tcs-wrapper > li
+  const contentDiv = li.querySelector('div.expandcollapse-content');
+  if (!contentDiv) return;
 
-    // For the content, reference the <ol> inside the expandcollapse-content if present,
-    // otherwise reference the expandcollapse-content itself.
-    let content;  
-    const ol = contentDiv.querySelector('ol');
-    if (ol) {
-      content = ol;
-    } else {
-      // Fallback if not found
-      content = contentDiv;
-    }
-    rows.push([titleEl, content]);
+  // Each accordion item is a .tcs-wrapper: each contains a <li>
+  const wrappers = contentDiv.querySelectorAll('.tcs-wrapper');
+  wrappers.forEach(wrapper => {
+    const liItem = wrapper.querySelector('li');
+    if (!liItem) return;
+    // Title cell is always the same for all items (from the single <a>). But example expects per-row titles. 
+    // In the given source, the only per-item title is the numbered value in <li value="N">. But this is not a heading, just an ordinal.
+    // We do not have per-item headings, so use the global title for all rows ("Things you need to know").
+    // But, to match the example behavior, consider if the text content of the first <p> or a strong might make sense as the title.
+    // However, in this HTML, only the overall <a> is a heading. So we must use that for all rows.
+    rows.push([
+      titleCell,
+      liItem
+    ]);
   });
 
+  // Create and replace with block table
   const table = WebImporter.DOMUtils.createTable(rows, document);
   element.replaceWith(table);
 }

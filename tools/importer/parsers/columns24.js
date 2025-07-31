@@ -1,34 +1,37 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // 1. Column block header row
-  const headerRow = ['Columns (columns24)'];
-
-  // 2. Get the two direct columns: .sl-item (should be exactly 2 for this layout)
-  const slList = element.querySelector('.sl-list');
+  // Find the sl-list (columns container)
+  const slList = element.querySelector('.sl-list.has-2-items');
   if (!slList) return;
-  const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
+  const slItems = slList.querySelectorAll(':scope > .sl-item');
   if (slItems.length < 2) return;
 
-  // 3. Left column: rich text heading
-  // Grab the first element's main content (keep all wrappers and original elements)
-  let leftContent = null;
-  // If .cm module__content, use it; else use whole .sl-item
-  const leftRich = slItems[0].querySelector(':scope > .cm-rich-text, :scope > .cm');
-  leftContent = leftRich ? leftRich : slItems[0];
+  // Extract left and right content for columns
+  let leftColumn = '';
+  const leftRichText = slItems[0].querySelector('.cm-rich-text');
+  if (leftRichText) {
+    leftColumn = leftRichText;
+  }
 
-  // 4. Right column: links list
-  // This can be a section.cm-links or .cq-dd-paragraph or fallback to .sl-item
-  let rightContent = null;
-  const rightSection = slItems[1].querySelector(':scope > .cq-dd-paragraph > section, :scope > section');
-  rightContent = rightSection ? rightSection : slItems[1];
+  let rightColumn = '';
+  const rightParagraph = slItems[1].querySelector('.cq-dd-paragraph');
+  if (rightParagraph) {
+    const linksSection = rightParagraph.querySelector('section.cm-links-related');
+    if (linksSection) {
+      const emptyHeader = linksSection.querySelector('h3.header');
+      if (emptyHeader && !emptyHeader.textContent.trim()) {
+        emptyHeader.remove();
+      }
+      rightColumn = linksSection;
+    }
+  }
 
-  // 5. Compose final two-column row
-  const contentRow = [leftContent, rightContent];
+  // Header row must be a single cell array
+  const cells = [
+    ['Columns (columns24)'], // Header row, one cell
+    [leftColumn, rightColumn] // Content row, multiple columns
+  ];
 
-  // 6. Build table and replace
-  const table = WebImporter.DOMUtils.createTable([
-    headerRow,
-    contentRow
-  ], document);
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

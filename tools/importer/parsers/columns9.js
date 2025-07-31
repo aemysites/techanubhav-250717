@@ -1,38 +1,29 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the container for the columns
-  const productKeyRates = element.querySelector('.product-key-rates');
-  const container = productKeyRates || element;
+  // Header row: must be a single cell as per the example
+  const headerRow = ['Columns (columns9)'];
 
-  // Get all direct children .product-key-rate-item as columns
-  const columns = Array.from(container.querySelectorAll('.product-key-rate-item'));
+  // Find all columns (product-key-rate-item)
+  const items = Array.from(element.querySelectorAll('.product-key-rate-item'));
 
-  // For each column, gather its contents as a fragment
-  const cellElements = columns.map((col) => {
-    const frag = document.createDocumentFragment();
-    Array.from(col.childNodes).forEach((node) => {
-      frag.appendChild(node);
-    });
-    return frag;
+  // Each column = one cell in the row
+  const columnsRow = items.map(item => {
+    const content = [];
+    const img = item.querySelector('img');
+    if (img) content.push(img);
+    const valueText = item.querySelector('.key-value-text');
+    if (valueText) content.push(valueText);
+    const topText = item.querySelector('.key-top-text');
+    if (topText) content.push(topText);
+    return content;
   });
 
-  // Custom table creation to allow correct header spanning
-  const table = document.createElement('table');
-  // Header row: one th with colspan = number of columns
-  const headerTr = document.createElement('tr');
-  const th = document.createElement('th');
-  th.textContent = 'Columns (columns9)';
-  th.colSpan = Math.max(1, cellElements.length);
-  headerTr.appendChild(th);
-  table.appendChild(headerTr);
-  // Content row
-  const contentTr = document.createElement('tr');
-  cellElements.forEach(cell => {
-    const td = document.createElement('td');
-    td.appendChild(cell);
-    contentTr.appendChild(td);
-  });
-  table.appendChild(contentTr);
+  // Compose table structure: header row (single cell), followed by row of columns
+  const cells = [
+    headerRow,
+    columnsRow
+  ];
 
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

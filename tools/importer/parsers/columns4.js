@@ -1,36 +1,28 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the sl-list: it contains columns as sl-item
+  // Find the inner .sl-list (the row of columns)
   const slList = element.querySelector('.sl-list');
   if (!slList) return;
-  // Each sl-item is a column
+
+  // Each .sl-item is a column
   const slItems = Array.from(slList.querySelectorAll(':scope > .sl-item'));
-  const columns = slItems.map(slItem => {
-    const section = slItem.querySelector('section');
-    return section ? section : slItem;
+  if (!slItems.length) return;
+
+  // Get the section content from each column
+  const columns = slItems.map((item) => {
+    // The section within the sl-item contains the title and links
+    const section = item.querySelector('section');
+    return section || item;
   });
 
-  // Header row: single column with block name
+  // Build table rows (header row is a single cell; second row is columns)
   const headerRow = ['Columns (columns4)'];
-  // Content row: one cell per column
   const contentRow = columns;
 
-  // Table: first row is single column header, second row is N columns
-  const table = document.createElement('table');
-  // Header row - single cell spanning all columns
-  const trHeader = document.createElement('tr');
-  const th = document.createElement('th');
-  th.colSpan = String(contentRow.length);
-  th.innerHTML = headerRow[0];
-  trHeader.appendChild(th);
-  table.appendChild(trHeader);
-  // Content row
-  const trContent = document.createElement('tr');
-  contentRow.forEach(cell => {
-    const td = document.createElement('td');
-    td.append(cell);
-    trContent.appendChild(td);
-  });
-  table.appendChild(trContent);
+  const table = WebImporter.DOMUtils.createTable([
+    headerRow,
+    contentRow,
+  ], document);
+
   element.replaceWith(table);
 }

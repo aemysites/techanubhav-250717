@@ -1,43 +1,42 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Table header as required by spec
+  // Header for the block, exactly as specified
   const headerRow = ['Cards (cards27)'];
+  const cells = [headerRow];
 
-  // Find the card sections.
-  const cards = [];
-  // Defensive: find .sl-list, then all section.cm-content-tile inside
+  // Find the card container list
   const slList = element.querySelector('.sl-list');
-  if (slList) {
-    const cardSections = slList.querySelectorAll('section.cm-content-tile');
-    cardSections.forEach((section) => {
-      // First cell: the card image (if present)
-      let img = null;
-      const imageDiv = section.querySelector('.image');
-      if (imageDiv) {
-        img = imageDiv.querySelector('img');
-      }
-      // Second cell: the card content: heading, description, CTA
-      const contentDiv = section.querySelector('.content');
-      const contentElements = [];
+  if (!slList) return;
+
+  // Each .sl-item is a column, each column contains one or more .cm-content-tile sections (cards)
+  const slItems = Array.from(slList.querySelectorAll('.sl-item'));
+  slItems.forEach(slItem => {
+    // Cards in the column
+    const cards = Array.from(slItem.querySelectorAll('section.cm-content-tile'));
+    cards.forEach(card => {
+      // First cell: image
+      // Get the <img> inside .image
+      const imgWrapper = card.querySelector('.image img');
+      const imgCell = imgWrapper ? imgWrapper : '';
+
+      // Second cell: content
+      const contentDiv = card.querySelector('.content');
+      let textContent = [];
       if (contentDiv) {
-        // Heading
-        const heading = contentDiv.querySelector('h3');
-        if (heading) contentElements.push(heading);
-        // Subheading (is empty, skip)
-        // Description: p (non-empty, not .subheading, not containing only links)
-        const contentPs = Array.from(contentDiv.querySelectorAll('p'));
-        contentPs.forEach((p) => {
-          if (p.classList.contains('subheading')) return; // skip subheading (empty)
-          if (p.textContent.trim() || p.querySelector('a')) {
-            contentElements.push(p);
+        // Keep all children that aren't empty <p class="subheading">
+        textContent = Array.from(contentDiv.children).filter(child => {
+          if (child.tagName.toLowerCase() === 'p' && child.classList.contains('subheading') && !child.textContent.trim() && !child.querySelector('a')) {
+            return false;
           }
+          return true;
         });
       }
-      cards.push([img, contentElements]);
+      // Each row: [image, text content elements]
+      cells.push([imgCell, textContent]);
     });
-  }
-  // Compose final table
-  const tableData = [headerRow, ...cards];
-  const block = WebImporter.DOMUtils.createTable(tableData, document);
-  element.replaceWith(block);
+  });
+
+  // Create table and replace original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
+  element.replaceWith(table);
 }

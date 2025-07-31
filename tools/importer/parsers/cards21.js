@@ -1,44 +1,37 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Header row as in the example
+  // Header row for the block
   const headerRow = ['Cards (cards21)'];
+  const cells = [headerRow];
 
-  // Gather card items
-  const items = element.querySelectorAll('.sl-list > .sl-item');
-  const rows = [];
+  // Get all card items (direct children of .sl-list)
+  const cardItems = element.querySelectorAll(':scope > .sl-list > .sl-item');
 
-  items.forEach((item) => {
-    // Each item: section > a > div.image > img and div.content > h2
-    const img = item.querySelector('img');
-    const h2 = item.querySelector('h2.header');
-    const link = item.querySelector('a.cm-image-block-link');
-
-    // First cell: image element (referenced directly)
-    const imgCell = img;
-
-    // Second cell: title as a link if present, otherwise text only. No description present in this HTML.
-    let textCell;
-    if (h2 && link) {
-      // Make <a> with href and textContent, reference h2 for text
+  cardItems.forEach((card) => {
+    // Each card has a section.cm-content-tile
+    const section = card.querySelector('section.cm-content-tile');
+    if (!section) return;
+    const link = section.querySelector('a.cm-image-block-link');
+    if (!link) return;
+    const imageDiv = link.querySelector('.image');
+    const img = imageDiv ? imageDiv.querySelector('img') : null;
+    const contentDiv = link.querySelector('.content');
+    const header = contentDiv ? contentDiv.querySelector('.header') : null;
+    // Left cell: reference the <img> element directly if present
+    const leftCell = img || '';
+    // Right cell: title as heading (h2) with link (if present)
+    let rightCell = '';
+    if (header) {
       const a = document.createElement('a');
       a.href = link.href;
-      a.textContent = h2.textContent;
-      textCell = a;
-    } else if (h2) {
-      // Only heading, no link
-      textCell = document.createTextNode(h2.textContent);
-    } else {
-      textCell = '';
+      a.textContent = header.textContent;
+      const h2 = document.createElement('h2');
+      h2.appendChild(a);
+      rightCell = h2;
     }
-    rows.push([imgCell, textCell]);
+    cells.push([leftCell, rightCell]);
   });
 
-  // Build the table block
-  const table = WebImporter.DOMUtils.createTable([
-    headerRow,
-    ...rows
-  ], document);
-
-  // Replace the original element
+  const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }

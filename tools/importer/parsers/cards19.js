@@ -1,52 +1,53 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Cards (cards19) block header
-  const headerRow = ['Cards (cards19)'];
-  const cells = [headerRow];
+  // Find the second column (contains the card grid)
+  const columns = element.querySelectorAll(':scope > div');
+  if (!columns || columns.length < 2) return;
+  const cardsContainer = columns[1];
+  if (!cardsContainer) return;
 
-  // Find all .cm-content-tile sections inside the element (these are the cards)
-  const cardSections = element.querySelectorAll('.cm-content-tile');
+  // Cards are within .cm-content-tile (inside .cq-dd-paragraph inside .sl-item)
+  const cardSections = cardsContainer.querySelectorAll('section.cm-content-tile');
+  if (!cardSections.length) return;
 
-  cardSections.forEach((section) => {
-    // Get image (should be in .image > a > img)
-    let imageCell = null;
-    const imageAnchor = section.querySelector('.image a');
-    if (imageAnchor && imageAnchor.querySelector('img')) {
-      imageCell = imageAnchor.querySelector('img');
-    }
-
-    // Get content area
+  const cards = [];
+  cardSections.forEach(section => {
+    // Image: First <img> in .image
+    let img = section.querySelector('.image img');
+    // Title: <h3> in .content
     const contentDiv = section.querySelector('.content');
-    const contentFragments = [];
+    const title = contentDiv ? contentDiv.querySelector('h3') : null;
+    // Description: all <p> that are not empty and not CTA
+    let descs = [];
+    let cta = null;
     if (contentDiv) {
-      // Title (h3.header)
-      const title = contentDiv.querySelector('h3');
-      if (title) contentFragments.push(title);
-      // Description (all <p> that are not .subheading and do not contain a CTA)
-      const paragraphs = contentDiv.querySelectorAll('p');
-      paragraphs.forEach((p) => {
-        if (!p.classList.contains('subheading') && !p.querySelector('.cta')) {
-          // Only push paragraph if it has visible text
-          if (p.textContent && p.textContent.trim().length > 0) {
-            contentFragments.push(p);
-          }
+      const ps = Array.from(contentDiv.querySelectorAll('p'));
+      ps.forEach(p => {
+        const a = p.querySelector('a');
+        // Find the CTA (<a> containing .cta) which is always the last item if it exists
+        if (a && a.querySelector('.cta')) {
+          cta = a;
+        } else if (p.textContent.trim()) {
+          descs.push(p);
         }
       });
-      // CTA (a) - only if it is a direct child of contentDiv (should be the 'Learn more' link)
-      const cta = Array.from(contentDiv.querySelectorAll('a')).find(a => a.querySelector('.cta'));
-      if (cta) contentFragments.push(cta);
     }
-
-    // Handle case where content is empty (should not happen, but be defensive)
-    if (imageCell || contentFragments.length > 0) {
-      cells.push([
-        imageCell,
-        contentFragments.length === 1 ? contentFragments[0] : contentFragments
-      ]);
-    }
+    // Compose text cell content
+    const frag = document.createDocumentFragment();
+    if (title) frag.appendChild(title);
+    descs.forEach(p => frag.appendChild(p));
+    if (cta) frag.appendChild(cta);
+    // Add card row
+    cards.push([
+      img ? img : '',
+      frag
+    ]);
   });
 
-  // Create the block table
+  const cells = [
+    ['Cards (cards19)'],
+    ...cards
+  ];
   const table = WebImporter.DOMUtils.createTable(cells, document);
   element.replaceWith(table);
 }
