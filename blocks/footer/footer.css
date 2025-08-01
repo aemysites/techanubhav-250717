@@ -18,3 +18,55 @@ footer .footer p {
     padding: 40px 32px 24px;
   }
 }
+
+.footer {
+  background: #474950;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Remove constraints/padding/background on nested divs */
+.footer > div,
+.footer .section,
+.footer .section > div {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+/* Hide all .section children except .default-content-wrapper */
+.footer .section > *:not(.default-content-wrapper) {
+  display: none;
+}
+
+/* Left-align and style the single visible line */
+.footer .default-content-wrapper {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0 8px;
+  background: transparent;
+  box-sizing: border-box;
+  min-height: 16px;
+  text-align: left;
+}
+
+/* Style for the one visible line of text */
+.footer .default-content-wrapper p {
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: normal;
+  margin: 0;
+  padding: 2px 0 0 0;
+  line-height: 1.2;
+  background: transparent;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
