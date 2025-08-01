@@ -62,7 +62,7 @@
           "url": "https://virginmoney.com.au",
           "urlHash": "5b47a4a2af7ec8842e5b0f37f75a8d4093caffc5",
           "uuid": "5b47a4a2-01-47d0e0989ef02dcd1cad66b726d3915f522c7481",
-          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[3]/section[1]/a[1]/div[1]",
+          "xpath": "/html[1]/body[1]/div[1]/div[1]/div[3]/section[1]",
           "section": "section-2"
         }
       ]
