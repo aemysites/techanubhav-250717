@@ -291,8 +291,6 @@ header nav .nav-hamburger {
 header nav .nav-sections .default-content-wrapper > p:first-child {
   display: none;
 }
-
-/* --- Brand and links --- */
 header nav .nav-sections .default-content-wrapper {
   display: flex;
   align-items: center;
@@ -304,8 +302,6 @@ header nav .nav-sections .default-content-wrapper {
   height: 64px;
   box-sizing: border-box;
 }
-
-/* Brand logo + text */
 header nav .nav-sections .default-content-wrapper > p:nth-child(1) + p {
   display: flex;
   align-items: center;
@@ -326,8 +322,6 @@ header nav .nav-sections .default-content-wrapper > p:nth-child(1) + p a {
   align-items: center;
   text-decoration: none;
 }
-
-/* Nav menu */
 header nav .nav-sections .default-content-wrapper > ul {
   display: flex;
   gap: 28px;
@@ -368,8 +362,6 @@ header nav .nav-sections .default-content-wrapper > ul > li > a:hover {
   background: none;
   text-decoration: underline;
 }
-
-/* --- Tools section --- */
 header nav .nav-sections .default-content-wrapper > p:last-child {
   margin-left: auto;
   display: flex;
@@ -377,13 +369,9 @@ header nav .nav-sections .default-content-wrapper > p:last-child {
   gap: 8px;
   height: 64px;
 }
-
-/* Hide the second icon ("X") in tools: it's the second <picture> in last <p> */
 header nav .nav-sections .default-content-wrapper > p:last-child picture:nth-of-type(2) {
   display: none;
 }
-
-/* Search icon and label */
 header nav .nav-sections .default-content-wrapper > p:last-child picture:nth-of-type(1) {
   display: inline-flex;
   align-items: center;
@@ -417,8 +405,6 @@ header nav .nav-sections .default-content-wrapper > p:last-child picture:nth-of-
   display: inline-block;
   line-height: 1;
 }
-
-/* Add spacing between search group and login (now 8px for accuracy) */
 header nav .nav-sections .default-content-wrapper > p:last-child a {
   display: flex;
   align-items: center;
@@ -459,6 +445,265 @@ header nav .nav-sections .default-content-wrapper > p:last-child a:hover {
     padding: 0 16px;
   }
   header nav .nav-sections .default-content-wrapper > p:last-child a {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 16px;
+    margin-left: 0;
+    height: 48px;
+  }
+}
+
+
+.header-wrapper .nav-wrapper {
+  position: fixed;
+  z-index: 2;
+  width: 100%;
+  background: #fff;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  min-height: 64px;
+  background: #fff;
+}
+
+.header nav {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  max-width: 1264px;
+  width: 100%;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 0 0 32px;
+  background: #fff;
+  box-sizing: border-box;
+  gap: 0 16px;
+  position: relative;
+}
+
+.header nav .nav-brand {
+  order: 1;
+  display: flex;
+  align-items: center;
+  min-width: 115px;
+  margin-right: 10px;
+  height: 64px;
+}
+
+.header nav .nav-brand img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-right: 8px;
+}
+
+.header nav .nav-sections {
+  order: 2;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 64px;
+}
+
+.header nav .nav-sections .default-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0;
+  height: 64px;
+  width: 100%;
+  background: none;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.header nav .nav-sections .default-content-wrapper > p:first-child {
+  display: none;
+}
+
+.header nav .nav-sections .default-content-wrapper > p:nth-child(2) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+  min-width: 115px;
+  height: 64px;
+}
+
+.header nav .nav-sections .default-content-wrapper > p:nth-child(2) img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-right: 6px;
+}
+
+.header nav .nav-sections .default-content-wrapper > ul {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  height: 64px;
+  flex: 1 1 auto;
+}
+
+.header nav .nav-sections .default-content-wrapper > ul > li,
+.header nav .nav-sections .default-content-wrapper > ul > li > a {
+  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #5a5a5a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  line-height: 1;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  height: 64px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .2s;
+}
+
+.header nav .nav-sections .default-content-wrapper > ul > li > a {
+  color: #5a5a5a;
+  text-decoration: none;
+}
+
+.header nav .nav-sections .default-content-wrapper > ul > li:hover > a,
+.header nav .nav-sections .default-content-wrapper > ul > li > a:hover {
+  color: #e30613;
+  text-decoration: underline;
+  background: none;
+}
+
+/* TOOL SECTION GROUPING (SEARCH + LOGIN) */
+.header nav .nav-sections .default-content-wrapper > p:last-child {
+  order: 2;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 12px;
+  height: 64px;
+  margin-left: auto;
+  background: transparent;
+  padding: 0;
+  position: static;
+}
+
+/* Search: label + icon group, together and before LOGIN */
+.header nav .nav-sections .default-content-wrapper > p:last-child {
+  flex-direction: row;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child picture {
+  order: 2;
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child a {
+  order: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 128px;
+  height: 64px;
+  padding: 0 36px;
+  background: #47494F;
+  color: #fff;
+  font-size: 13px;
+  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-radius: 0;
+  transition: background 0.2s;
+  text-align: center;
+  box-sizing: border-box;
+  border: none;
+  margin-left: 14px;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child a:hover {
+  background: #333439;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) saturate(100%) invert(21%) sepia(94%) saturate(5577%) hue-rotate(348deg) brightness(94%) contrast(107%);
+  margin-left: 4px;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child span,
+.header nav .nav-sections .default-content-wrapper > p:last-child {
+  color: #e30613;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+  display: flex;
+  align-items: center;
+}
+
+/* Force flex order: label (text node or span), picture (icon), a (LOGIN) */
+.header nav .nav-sections .default-content-wrapper > p:last-child > a {
+  order: 3;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child > picture {
+  order: 2;
+}
+.header nav .nav-sections .default-content-wrapper > p:last-child > span,
+.header nav .nav-sections .default-content-wrapper > p:last-child > br + span,
+.header nav .nav-sections .default-content-wrapper > p:last-child > :not(a):not(picture) {
+  order: 1;
+}
+
+/* End flex order */
+
+.header nav .nav-hamburger {
+  display: none;
+  visibility: hidden;
+}
+
+@media (max-width: 900px) {
+  .header-wrapper .nav-wrapper,
+  .header nav,
+  .header,
+  .header nav .nav-sections .default-content-wrapper,
+  .header nav .nav-sections .default-content-wrapper > ul,
+  .header nav .nav-sections .default-content-wrapper > p:last-child {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    height: auto;
+    min-height: 56px;
+  }
+  .header nav {
+    padding: 0 16px;
+  }
+  .header nav .nav-sections .default-content-wrapper > p:last-child {
+    position: static;
+    height: 48px;
+    background: none;
+    padding: 0;
+    margin-left: 0;
+  }
+  .header nav .nav-sections .default-content-wrapper > p:last-child a {
     width: 100%;
     justify-content: flex-start;
     padding: 0 16px;
