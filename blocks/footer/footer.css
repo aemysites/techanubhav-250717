@@ -18,3 +18,59 @@ footer .footer p {
     padding: 40px 32px 24px;
   }
 }
+
+.footer {
+  background: #48494F;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Hide all extra columns and images, leave only copyright bar */
+.footer .columns-wrapper,
+.footer .columns,
+.footer .columns33,
+.footer .columns-3-cols,
+.footer .columns-img-col {
+  display: none;
+}
+
+/* Remove paddings, constraints, and centerings from all wrapper divs */
+.footer > div,
+.footer .block,
+.footer .section,
+.footer .columns-container {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Copyright bar: full width, left-aligned, minimal padding */
+.footer .default-content-wrapper {
+  background: #48494F;
+  padding: 4px 0 2px 4px; /* minimal left padding for flush alignment */
+  margin: 0;
+  width: 100vw;
+  box-sizing: border-box;
+  display: block;
+  text-align: left;
+}
+
+/* Copyright text: small, left-aligned, white */
+.footer .default-content-wrapper p {
+  color: #fff;
+  font-size: 10px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  font-family: inherit;
+  letter-spacing: normal;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
