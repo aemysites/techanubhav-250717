@@ -1,8 +1,10 @@
 .accordion details {
-  border: 1px solid #dadada;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f6;
 }
 
-/* stylelint-disable-next-line no-descending-specificity */
 .accordion details + details {
   margin-top: 24px;
 }
@@ -12,12 +14,18 @@
 }
 
 .accordion details summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: #f4f4f6;
+  border-bottom: 1px solid #e6e6ea;
+  padding: 12px 16px;
+  min-height: 40px;
+  margin: 0;
+  box-sizing: border-box;
   position: relative;
-  padding: 0 16px;
-  padding-right: 46px;
   cursor: pointer;
-  list-style: none;
-  overflow: auto;
   transition: background-color 0.2s;
 }
 
@@ -35,16 +43,20 @@
 }
 
 .accordion details summary::after {
-  content: '';
   position: absolute;
+  right: 16px;
   top: 50%;
-  right: 18px;
+  width: 7px;
+  height: 7px;
+  border: solid #e53935;
+  border-width: 1.5px 1.5px 0 0;
   transform: translateY(-50%) rotate(135deg);
-  width: 6px;
-  height: 6px;
-  border: 2px solid;
-  border-width: 2px 2px 0 0;
+  box-sizing: border-box;
+  background: none;
   transition: transform 0.2s;
+  pointer-events: none;
+  display: block;
+  content: "";
 }
 
 .accordion details[open] summary::after {
@@ -53,9 +65,39 @@
 
 .accordion details .accordion-item-body {
   padding: 0 16px;
+  background: #f4f4f6;
+  border: none;
 }
 
 .accordion details[open] .accordion-item-body {
-  border-top: 1px solid #dadada;
-  background-color: var(--background-color);
+  border-top: 1px solid #e6e6ea;
+}
+
+.accordion details summary .button-container,
+.accordion details summary p.button-container {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.accordion .button-container .button {
+  background: none;
+  color: #484848;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  display: block;
+  min-width: 0;
+  line-height: 1.5;
+  white-space: normal;
+  overflow: visible;
+  max-width: 100%;
 }
