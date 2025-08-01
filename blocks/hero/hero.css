@@ -45,3 +45,42 @@
     padding: 40px 32px;
   }
 }
+
+.hero.hero2 {
+  position: relative;
+  width: 100vw;
+  min-height: 400px;
+  background: #ffe4e4;
+  overflow: hidden;
+  display: block;
+  padding: 0;
+}
+
+/* Ensure image fills the hero and is centered */
+.hero.hero2 > div > div > p:first-child {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+  background: none;
+}
+
+.hero.hero2 > div > div > p:first-child picture,
+.hero.hero2 > div > div > p:first-child img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center center;
+  max-width: none;
+  max-height: none;
+}
+
+/* Hide all inner content visually, but keep in DOM for accessibility */
+.hero.hero2 > div > div > *:not(:first-child) {
+  display: none;
+}
