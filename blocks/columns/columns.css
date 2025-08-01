@@ -257,8 +257,6 @@
   gap: 0;
   padding: 0;
   box-sizing: border-box;
-
-  /* Let the content height dictate the row height */
 }
 
 .columns.columns5 > div > .columns-img-col {
@@ -268,8 +266,6 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-
-  /* Remove height to let content control height */
 }
 
 .columns.columns5 .columns-img-col picture,
@@ -297,7 +293,6 @@
   box-sizing: border-box;
 }
 
-/* Typography and button remain unchanged */
 .columns.columns5 h2,
 .columns.columns5 h2 strong {
   color: #609;
@@ -384,5 +379,103 @@
   .columns.columns5 .button-container {
     width: 100%;
     justify-content: flex-start;
+  }
+}
+
+.columns.columns11 {
+  background: #4a4b50;
+  color: #d7d7d7;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 32px 0;
+}
+
+.columns.columns11 > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 40px;
+  width: 100%;
+}
+
+.columns.columns11 > div > div {
+  flex: 1 1 0;
+  min-width: 170px;
+}
+
+/* Remove bullets and tighten up spacing */
+.columns.columns11 ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.columns.columns11 li {
+  margin-bottom: 6px;
+}
+
+.columns.columns11 a {
+  color: #d7d7d7;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 2;
+  display: inline-block;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.columns.columns11 a:hover,
+.columns.columns11 a:focus {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Social icons row styling */
+.columns.columns11 > div > .columns-img-col ul {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  align-items: flex-start;
+  margin-top: 0;
+}
+
+.columns.columns11 > div > .columns-img-col li {
+  margin-bottom: 0;
+}
+
+.columns.columns11 > div > .columns-img-col a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.columns.columns11 > div > .columns-img-col a:hover {
+  opacity: 0.7;
+}
+
+.columns.columns11 > div > .columns-img-col img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(0.8);
+  display: block;
+}
+
+/* Responsive stacking on small screens */
+@media (width <= 900px) {
+  .columns.columns11 > div {
+    flex-direction: column;
+    gap: 32px;
+    max-width: 100%;
+  }
+
+  .columns.columns11 > div > div {
+    min-width: 0;
   }
 }
