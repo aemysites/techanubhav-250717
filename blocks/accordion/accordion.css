@@ -101,3 +101,70 @@
   overflow: visible;
   max-width: 100%;
 }
+
+
+.accordion details summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: #f4f4f6;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 18px 36px 18px 36px;
+  min-height: 32px;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: Arial, Helvetica, "Inter", "sans-serif";
+}
+
+.accordion details summary p {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-family: Arial, Helvetica, "Inter", "sans-serif";
+  font-weight: 400;
+  color: #444444;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+}
+
+.accordion details summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion details summary::after {
+  position: absolute;
+  right: 36px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: solid #e53935;
+  border-width: 0 1.5px 1.5px 0;
+  border-radius: 1.5px;
+  transform: translateY(-50%) rotate(45deg);
+  box-sizing: border-box;
+  background: none;
+  pointer-events: none;
+  display: block;
+}
+
+.accordion details[open] summary::after {
+  transform: translateY(-50%) rotate(-135deg);
+}
+
+.accordion details .accordion-item-body {
+  padding: 0 36px 12px 36px;
+  background: #fff;
+  color: #444444;
+  font-size: 13px;
+  border-bottom: 1px solid #e0e0e0;
+  font-family: Arial, Helvetica, "Inter", "sans-serif";
+}
