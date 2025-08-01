@@ -1,4 +1,4 @@
-/* Disable no-descending-specificity rule globally */
+/* Disable no-descending-specificity globally */
 /* stylelint-disable no-descending-specificity */
 
 .columns > div {
@@ -107,7 +107,6 @@
   padding: 2.5rem 0;
 }
 
-/* Layout: two columns side by side */
 .columns.columns7 > div {
   display: flex;
   flex-direction: row;
@@ -121,7 +120,6 @@
   min-height: 400px;
 }
 
-/* Left: phone image column */
 .columns.columns7 .columns-img-col {
   flex: 0 0 320px;
   min-width: 260px;
@@ -144,7 +142,6 @@
   opacity: 1;
 }
 
-/* Right: content column (h2, p, app store) */
 .columns.columns7 > div > div:not(.columns-img-col) {
   flex: 1 1 0;
   display: flex;
@@ -158,7 +155,6 @@
   margin: 0;
 }
 
-/* Title */
 .columns.columns7 h2,
 .columns.columns7 h2 strong {
   color: #6f2995;
@@ -168,7 +164,6 @@
   line-height: 1.1;
 }
 
-/* Paragraph */
 .columns.columns7 p {
   color: #333;
   font-size: 1.07rem;
@@ -177,14 +172,12 @@
   line-height: 1.5;
 }
 
-/* Link styling */
 .columns.columns7 p a {
   color: #6f2995;
   text-decoration: underline;
   font-weight: 500;
 }
 
-/* App store button area (table) — ensure images are visible and side-by-side */
 .columns.columns7 table {
   background: #f4f4f6;
   border-radius: 14px;
@@ -202,7 +195,6 @@
   vertical-align: middle;
 }
 
-/* Ensure all app store button images show up and are sized correctly */
 .columns.columns7 table picture,
 .columns.columns7 table img {
   display: inline-block;
@@ -221,7 +213,6 @@
   display: none;
 }
 
-/* Responsive: stack columns and scale image on mobile */
 @media (width <= 900px) {
   .columns.columns7 > div {
     flex-direction: column;
@@ -254,5 +245,144 @@
   .columns.columns7 table img {
     height: 38px;
     max-width: 110px;
+  }
+}
+
+.columns.columns5 > div {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  /* Let the content height dictate the row height */
+}
+
+.columns.columns5 > div > .columns-img-col {
+  flex: 0 1 36%;
+  max-width: 36%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+
+  /* Remove height to let content control height */
+}
+
+.columns.columns5 .columns-img-col picture,
+.columns.columns5 .columns-img-col img {
+  width: 100%;
+  max-width: 540px;
+  aspect-ratio: 16/11;
+  height: auto;
+  max-height: 460px;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+  margin: 0;
+  align-self: flex-start;
+}
+
+.columns.columns5 > div > div:last-child {
+  flex: 0 1 64%;
+  max-width: 64%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0 2.8rem 0 2.6rem;
+  box-sizing: border-box;
+}
+
+/* Typography and button remain unchanged */
+.columns.columns5 h2,
+.columns.columns5 h2 strong {
+  color: #609;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 1.25rem;
+}
+
+.columns.columns5 p {
+  color: #333;
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0 0 1rem;
+  line-height: 1.6;
+}
+
+.columns.columns5 p:last-of-type:not(.button-container) {
+  color: #888;
+  font-size: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.columns.columns5 .button-container {
+  width: 100%;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.columns.columns5 .button-container .button {
+  background: #d0021b;
+  color: #fff;
+  padding: 0.85em 2.2em;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: none;
+  border: none;
+  text-align: left;
+  min-width: 180px;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="20" width="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="8,5 13,10 8,15" /></svg>');
+  background-repeat: no-repeat;
+  background-position: right 1.5em center;
+  background-size: 1.2em auto;
+  padding-right: 3.2em;
+}
+
+.columns.columns5 .button-container .button:hover,
+.columns.columns5 .button-container .button:focus {
+  background: #a10016;
+  color: #fff;
+  text-decoration: none;
+}
+
+@media (width <= 899px) {
+  .columns.columns5 > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .columns.columns5 > div > .columns-img-col,
+  .columns.columns5 > div > div:last-child {
+    max-width: 100%;
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .columns.columns5 .columns-img-col img,
+  .columns.columns5 .columns-img-col picture {
+    max-height: 340px;
+    height: 220px;
+    aspect-ratio: unset;
+  }
+
+  .columns.columns5 > div > div:last-child {
+    padding: 1rem 0 2rem;
+  }
+
+  .columns.columns5 .button-container {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
