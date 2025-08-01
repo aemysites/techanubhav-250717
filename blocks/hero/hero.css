@@ -45,3 +45,87 @@
     padding: 40px 32px;
   }
 }
+
+.hero.hero2 {
+  background: #ffe6e6;
+  position: relative;
+  padding: 0;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.hero.hero2 > div {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  min-height: 400px;
+  width: 100%;
+  height: 100%;
+  background: none;
+  padding: 0;
+  position: relative;
+}
+
+.hero.hero2 > div > div:first-child {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero.hero2 > div > div:first-child picture,
+.hero.hero2 > div > div:first-child img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 400px;
+  max-height: none;
+  max-width: none;
+}
+
+.hero.hero2 > div > div:last-child {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  z-index: 2;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: none;
+  max-width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  opacity: 0; /* Hide the text visually */
+  pointer-events: none;
+}
+
+@media (width <= 900px) {
+  .hero.hero2 > div > div:last-child {
+    position: static;
+    padding: 1.5rem 0.5rem;
+    background: none;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero.hero2 > div > div:first-child picture,
+  .hero.hero2 > div > div:first-child img {
+    min-height: 270px;
+  }
+}
