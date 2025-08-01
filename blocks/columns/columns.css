@@ -1,3 +1,4 @@
+/* stylelint-disable no-descending-specificity */
 .columns > div {
   display: flex;
   flex-direction: column;
@@ -476,91 +477,82 @@
   font-size: 11px;
 }
 
-
-/* Main row: three columns side by side using Flexbox */
 .columns.columns4 > div {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: flex-start;
-  gap: 40px;
+  gap: 28px;
+  max-width: 930px;
+  margin: 0 auto;
   padding: 0;
-  margin: 0;
   background: #fff;
-  width: 100%;
   box-sizing: border-box;
 }
 
-/* Responsive: stack vertically on small screens */
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .columns.columns4 > div {
     flex-direction: column;
-    gap: 24px;
+    gap: 18px;
+    max-width: 100%;
   }
 }
 
-/* Each column: stack children vertically, left aligned */
 .columns.columns4 > div > div {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-width: 0;
   padding: 0;
   margin: 0;
-  flex: 1 1 0;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
-/* Headings: left-aligned, purple, bold, small font */
 .columns.columns4 h3 {
-  color: #7d3db1;
-  font-size: 14px;
-  font-weight: bold;
+  color: #7B3FA0;
+  font-size: 13px;
+  font-weight: 600;
   font-family: inherit;
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   line-height: 1.2;
   text-align: left;
 }
 
-/* Remove default <p> margin and add compact vertical spacing between links */
 .columns.columns4 .button-container {
-  margin: 0 0 8px 0;
+  margin: 0 0 2px;
   padding: 0;
 }
 
-/* Style links as text buttons with arrow background close to the left edge */
 .columns.columns4 .button.primary {
   background: none;
   border: none;
-  color: #e06666;
-  font-size: 12px;
-  font-weight: normal;
-  text-align: left;
-  line-height: 1.6;
   box-shadow: none;
-  box-sizing: border-box;
+  color: #EF6B6A;
+  font-size: 11px;
+  font-weight: 400;
+  text-align: left;
+  line-height: 1.2;
   border-radius: 0;
   margin: 0;
-  padding: 0 0 0 15px;
+  padding: 0 0 0 11px;
   display: inline-block;
   position: relative;
   min-width: 0;
   font-family: inherit;
-  transition: color 0.2s;
   vertical-align: middle;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='none' height='10' width='14' xmlns='http://www.w3.org/2000/svg'><path d='M2 5h8M7 2l3 3-3 3' stroke='%23e06666' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg fill='none' height='8' width='9' xmlns='http://www.w3.org/2000/svg'><path d='M1 4h5m-2-2.5L8 4 4 6.5' stroke='%23EF6B6A' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
-  background-position: 1px center;
-  background-size: 14px 10px;
+  background-position: 0 46%;
+  background-size: 9px 8px;
+  transition: color 0.2s;
 }
 
-/* Remove bold from link text if wrapped in <strong> */
 .columns.columns4 .button-container strong {
-  font-weight: normal;
+  font-weight: 400;
 }
 
-/* Link hover: slightly darker red and underline */
 .columns.columns4 .button.primary:hover,
 .columns.columns4 .button.primary:focus {
-  color: #c64848;
+  color: #EF6B6A;
   text-decoration: underline;
 }
